@@ -51,10 +51,6 @@ struct AddTime{
     parsed_time:String,
 
 }
-#[derive(Debug)]
-struct CheckTime{
-    parsingtime:String
-}
 
 
 fn main() -> std::io::Result<()> {
@@ -72,10 +68,12 @@ fn main() -> std::io::Result<()> {
             let sliced_datetime = &datetime_str[..19];
             if let Ok(parsed_datetime) = PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
                 // println!("Date time frame: {}", parsed_datetime);
+                //getting smallest date time
                 if let Some(smallest) = smallest_datetime {
                     if parsed_datetime < smallest {
                         smallest_datetime = Some(parsed_datetime);
                         // println!("Parsed time for every frame:{}",parsed_datetime);
+                        println!("Smallesst date time frame ");
                         println!("Header line is: {:?}", line_str);
                         if let Some(next_line) = lines.next() {
                             println!("Sequence line is: {:?}", next_line?);
@@ -87,29 +85,48 @@ fn main() -> std::io::Result<()> {
                             println!("QC line: {:?}", fourth_line?);
                         }
                         // smallest+=parsed_datetime
-                        println!("smallest time inside the loop:{:?}",smallest_datetime);
+                        // println!("smallest time inside the loop:{:?}",smallest_datetime);
                         let poke_time=after(smallest, &3);
-                        println!("Poke time inside the loop:{}",poke_time);
+                        // println!("Poke time inside the loop:{}",poke_time);
                         let point=AddTime{smallest_time:smallest.to_string(),added_time:poke_time.to_string(),parsed_time:parsed_datetime.to_string()};
-                        println!("Add struct inside the while loop:{:?}",point);
+                        // println!("Add struct inside the while loop:{:?}",point);
                         
                     }
-                    println!("Parsed date time loop :{}",parsed_datetime.to_string());
-                    let checkme=CheckTime{parsingtime:parsed_datetime.to_string()};
-                    println!("To check time frame:{:?}",checkme);
+                    //println!("Smallest time is outside the box:{:?}",smallest_datetime);
                     date_time_take.push(parsed_datetime.to_string());
                     // println!("Date time take:{:?}",date_time_take);
 
                 } else {
                     smallest_datetime = Some(parsed_datetime);
                 }
-                // time_iter(&date_time_take,smallest_datetime,parsed_datetime);
-                // valid_indices(smallest_datetime, &parsed_datetime, &parsed_datetime)
+                //new scope for comparing datetimeframe
+                if let Some(new) =smallest_datetime  {
+                let test_time=after(new, &7);
+                if parsed_datetime< test_time{
+                    println!("Parsed time within the range:{}",parsed_datetime);
+                    println!("Header line for the first parsed datetime{:?}",line_str);
+                    if let Some(parsed_new_line) =lines.next()  {
+                        println!("Sequence line from the parsed datetime is :{:?}",parsed_new_line);
+                        
+                    }
+                    if let Some(after_parsed_next_line) =lines.next()  {
+                        println!("Plus line from the parsed date time:{:?}",after_parsed_next_line);
+                        
+                    }
+                    if let Some(last_line_from_parsed_datetime) =lines.next()  {
+                        println!("Last line from the parsed date time is:{:?}",last_line_from_parsed_datetime);
+                    }
+                }
+                    
+                }
             }
         }
         
     }
-    println!("Date time taking vector:{:?}",date_time_take);
+    // println!("Date time taking vector without sort:{:?}",date_time_take);
+    
+    
+    
 
     if let Some(smallest) = smallest_datetime {
         let added_time=after(smallest,&3);
