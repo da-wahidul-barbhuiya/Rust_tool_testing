@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{BufReader, BufRead};
+use std::io::{BufReader, BufRead, Lines};
 use std::time::Duration;
 use std::{vec, usize};
 use regex::Regex;
@@ -51,7 +51,19 @@ struct AddTime{
     parsed_time:String,
 
 }
-
+fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>){
+    println!("Header line:{:?}",ln_str);
+    if let Some(next_line) =line.next()  {
+        println!("sequence line:{:?}",next_line);
+        
+    }
+    if let Some(after_next_line) =line.next()  {
+        println!("Plus line:{:?}",after_next_line);
+    }
+    if let Some(fourth_line) =line.next()  {
+        println!("QC line:{:?}",fourth_line);
+    }
+}
 
 fn main() -> std::io::Result<()> {
     let file = File::open("new.fastq")?;
@@ -74,16 +86,17 @@ fn main() -> std::io::Result<()> {
                         smallest_datetime = Some(parsed_datetime);
                         // println!("Parsed time for every frame:{}",parsed_datetime);
                         println!("Smallesst date time frame ");
-                        println!("Header line is: {:?}", line_str);
-                        if let Some(next_line) = lines.next() {
-                            println!("Sequence line is: {:?}", next_line?);
-                        }
-                        if let Some(after_next_line) = lines.next() {
-                            println!("Plus line: {:?}", after_next_line?);
-                        }
-                        if let Some(fourth_line) = lines.next() {
-                            println!("QC line: {:?}", fourth_line?);
-                        }
+                        line_count(line_str.clone(), &mut lines);
+                        // println!("Header line is: {:?}", line_str);
+                        // if let Some(next_line) = lines.next() {
+                        //     println!("Sequence line is: {:?}", next_line?);
+                        // }
+                        // if let Some(after_next_line) = lines.next() {
+                        //     println!("Plus line: {:?}", after_next_line?);
+                        // }
+                        // if let Some(fourth_line) = lines.next() {
+                        //     println!("QC line: {:?}", fourth_line?);
+                        // }
                         // smallest+=parsed_datetime
                         // println!("smallest time inside the loop:{:?}",smallest_datetime);
                         let poke_time=after(smallest, &3);
@@ -99,23 +112,30 @@ fn main() -> std::io::Result<()> {
                 } else {
                     smallest_datetime = Some(parsed_datetime);
                 }
+
+
+
+
+
+                
                 //new scope for comparing datetimeframe
                 if let Some(new) =smallest_datetime  {
                 let test_time=after(new, &7);
                 if parsed_datetime< test_time{
                     println!("Parsed time within the range:{}",parsed_datetime);
-                    println!("Header line for the first parsed datetime{:?}",line_str);
-                    if let Some(parsed_new_line) =lines.next()  {
-                        println!("Sequence line from the parsed datetime is :{:?}",parsed_new_line);
+                    line_count(line_str.clone(),&mut lines);
+                    // println!("Header line for the first parsed datetime{:?}",line_str);
+                    // if let Some(parsed_new_line) =lines.next()  {
+                    //     println!("Sequence line from the parsed datetime is :{:?}",parsed_new_line);
                         
-                    }
-                    if let Some(after_parsed_next_line) =lines.next()  {
-                        println!("Plus line from the parsed date time:{:?}",after_parsed_next_line);
+                    // }
+                    // if let Some(after_parsed_next_line) =lines.next()  {
+                    //     println!("Plus line from the parsed date time:{:?}",after_parsed_next_line);
                         
-                    }
-                    if let Some(last_line_from_parsed_datetime) =lines.next()  {
-                        println!("Last line from the parsed date time is:{:?}",last_line_from_parsed_datetime);
-                    }
+                    // }
+                    // if let Some(last_line_from_parsed_datetime) =lines.next()  {
+                    //     println!("Last line from the parsed date time is:{:?}",last_line_from_parsed_datetime);
+                    // }
                 }
                     
                 }
