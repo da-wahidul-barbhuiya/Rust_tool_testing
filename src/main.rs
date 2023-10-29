@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufReader, BufRead, Lines};
 use std::time::Duration;
@@ -51,11 +52,21 @@ struct AddTime{
     parsed_time:String,
 
 }
-fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>){
+fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>,mut collect_map:HashMap<String,i32>){
     println!("Header line:{:?}",ln_str);
     if let Some(next_line) =line.next()  {
         
         println!("sequence line:{:?}",next_line);
+        if let Ok(next_line_result) =next_line  {
+            let line_length: i32=next_line_result.len().try_into().unwrap();
+            println!("Sequence line length:{:?}",line_length);
+            let barcode_name=barcode_extraction(ln_str);
+            collect_map.insert(barcode_name.to_string(), line_length);
+            
+        }else if let Err(err)=next_line {
+            eprintln!("Error reading line:{:?}",err);
+            
+        };
         
     }
     if let Some(after_next_line) =line.next()  {
@@ -65,13 +76,14 @@ fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>){
         println!("QC line:{:?}",fourth_line);
     }
 }
-fn barcode_extraction(lin_str:String){
+fn barcode_extraction(lin_str:String)-> String{
     let barcode_re=Regex::new(r"barcode=(?P<barcode>\S+)\s*").unwrap();
     if let Some(cap_barcode) = barcode_re.captures(&lin_str) {
-        let barcode_str=cap_barcode.name("barcode").unwrap().as_str();
-        println!("barcode string part:{}",barcode_str)
+        let barcode_str=cap_barcode.name("barcode").unwrap().as_str().to_string();
+        // println!("barcode string part:{}",barcode_str);
+        return barcode_str;
     }
-
+    // barcode_str
 }
 
 fn main() -> std::io::Result<()> {
@@ -82,6 +94,7 @@ fn main() -> std::io::Result<()> {
     //let mut smallest_datetime = AddTime { value: PrimitiveDateTime::now() };
     let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
     let mut date_time_take:Vec<String>=Vec::new();
+    let mut Collect_barcode:HashMap<String,i32>=HashMap::new();
     while let Some(line) = lines.next() {
         let line_str = line?;
         if let Some(captures) = date_time_re.captures(&line_str) {
@@ -95,7 +108,7 @@ fn main() -> std::io::Result<()> {
                         smallest_datetime = Some(parsed_datetime);
                         // println!("Parsed time for every frame:{}",parsed_datetime);
                         println!("Smallesst date time frame ");
-                        line_count(line_str.clone(), &mut lines);
+                        // line_count(line_str.clone(), &mut lines,Collect_barcode);
                         // println!("Header line is: {:?}", line_str);
                         // if let Some(next_line) = lines.next() {
                         //     println!("Sequence line is: {:?}", next_line?);
@@ -132,7 +145,7 @@ fn main() -> std::io::Result<()> {
                 let test_time=after(new, &7);
                 if parsed_datetime< test_time{
                     println!("Parsed time within the range:{}",parsed_datetime);
-                    line_count(line_str.clone(),&mut lines);
+                    line_count(line_str.clone(),&mut lines,Collect_barcode);
                     
                 }
                     
@@ -142,7 +155,7 @@ fn main() -> std::io::Result<()> {
         
     }
     // println!("Date time taking vector without sort:{:?}",date_time_take);
-    
+    println!("Collect barcode :{:?}",Collect_barcode);
     
     
 
