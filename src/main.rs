@@ -54,6 +54,7 @@ struct AddTime{
 fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>){
     println!("Header line:{:?}",ln_str);
     if let Some(next_line) =line.next()  {
+        
         println!("sequence line:{:?}",next_line);
         
     }
@@ -63,6 +64,14 @@ fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>){
     if let Some(fourth_line) =line.next()  {
         println!("QC line:{:?}",fourth_line);
     }
+}
+fn barcode_extraction(lin_str:String){
+    let barcode_re=Regex::new(r"barcode=(?P<barcode>\S+)\s*").unwrap();
+    if let Some(cap_barcode) = barcode_re.captures(&lin_str) {
+        let barcode_str=cap_barcode.name("barcode").unwrap().as_str();
+        println!("barcode string part:{}",barcode_str)
+    }
+
 }
 
 fn main() -> std::io::Result<()> {
@@ -124,18 +133,7 @@ fn main() -> std::io::Result<()> {
                 if parsed_datetime< test_time{
                     println!("Parsed time within the range:{}",parsed_datetime);
                     line_count(line_str.clone(),&mut lines);
-                    // println!("Header line for the first parsed datetime{:?}",line_str);
-                    // if let Some(parsed_new_line) =lines.next()  {
-                    //     println!("Sequence line from the parsed datetime is :{:?}",parsed_new_line);
-                        
-                    // }
-                    // if let Some(after_parsed_next_line) =lines.next()  {
-                    //     println!("Plus line from the parsed date time:{:?}",after_parsed_next_line);
-                        
-                    // }
-                    // if let Some(last_line_from_parsed_datetime) =lines.next()  {
-                    //     println!("Last line from the parsed date time is:{:?}",last_line_from_parsed_datetime);
-                    // }
+                    
                 }
                     
                 }
