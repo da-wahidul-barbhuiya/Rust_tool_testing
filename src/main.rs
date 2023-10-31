@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::error::Error;
 use std::fs::File;
 use std::io::{BufReader, BufRead, Lines};
 use std::time::Duration;
@@ -52,16 +53,16 @@ struct AddTime{
     parsed_time:String,
 
 }
-fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>,mut collect_map:HashMap<String,i32>){
-    println!("Header line:{:?}",ln_str);
+fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>, collect_map:&mut HashMap<String,Vec<i32>>){
+    // println!("Header line:{:?}",ln_str);
     if let Some(next_line) =line.next()  {
         
-        println!("sequence line:{:?}",next_line);
+        // println!("sequence line:{:?}",next_line);
         if let Ok(next_line_result) =next_line  {
             let line_length: i32=next_line_result.len().try_into().unwrap();
             println!("Sequence line length:{:?}",line_length);
             let barcode_name=barcode_extraction(ln_str);
-            collect_map.insert(barcode_name.to_string(), line_length);
+            collect_map.entry(barcode_name).and_modify(|vec| vec.push(line_length)).or_insert(vec![line_length]);
             
         }else if let Err(err)=next_line {
             eprintln!("Error reading line:{:?}",err);
@@ -70,31 +71,34 @@ fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>,mut coll
         
     }
     if let Some(after_next_line) =line.next()  {
-        println!("Plus line:{:?}",after_next_line);
+        // println!("Plus line:{:?}",after_next_line);
     }
     if let Some(fourth_line) =line.next()  {
-        println!("QC line:{:?}",fourth_line);
+        // println!("QC line:{:?}",fourth_line);
     }
 }
-fn barcode_extraction(lin_str:String)-> String{
+fn barcode_extraction(lin_str:String)->//std::io::Result<()>{
+    String{
     let barcode_re=Regex::new(r"barcode=(?P<barcode>\S+)\s*").unwrap();
     if let Some(cap_barcode) = barcode_re.captures(&lin_str) {
-        let barcode_str=cap_barcode.name("barcode").unwrap().as_str().to_string();
-        // println!("barcode string part:{}",barcode_str);
-        return barcode_str;
+        let barcode_str=cap_barcode.name("barcode").unwrap().as_str();
+        println!("barcode string part:{}",barcode_str);
+        return  barcode_str.to_string();
+        
     }
-    // barcode_str
+    // Ok(())
+    String::new()
 }
 
 fn main() -> std::io::Result<()> {
-    let file = File::open("new.fastq")?;
+    let file = File::open("diff_barcode.fastq")?;
     let reader = BufReader::new(file);
     let mut lines = reader.lines();
     let mut smallest_datetime: Option<PrimitiveDateTime> = None;
     //let mut smallest_datetime = AddTime { value: PrimitiveDateTime::now() };
     let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
     let mut date_time_take:Vec<String>=Vec::new();
-    let mut Collect_barcode:HashMap<String,i32>=HashMap::new();
+    let mut Collect_barcode:HashMap<String,Vec<i32>>=HashMap::new();
     while let Some(line) = lines.next() {
         let line_str = line?;
         if let Some(captures) = date_time_re.captures(&line_str) {
@@ -134,18 +138,12 @@ fn main() -> std::io::Result<()> {
                 } else {
                     smallest_datetime = Some(parsed_datetime);
                 }
-
-
-
-
-
-                
                 //new scope for comparing datetimeframe
                 if let Some(new) =smallest_datetime  {
                 let test_time=after(new, &7);
                 if parsed_datetime< test_time{
                     println!("Parsed time within the range:{}",parsed_datetime);
-                    line_count(line_str.clone(),&mut lines,Collect_barcode);
+                    line_count(line_str.clone(),&mut lines,&mut Collect_barcode);
                     
                 }
                     
@@ -156,6 +154,12 @@ fn main() -> std::io::Result<()> {
     }
     // println!("Date time taking vector without sort:{:?}",date_time_take);
     println!("Collect barcode :{:?}",Collect_barcode);
+    let mut mean_map: HashMap<String, f64>=HashMap::new();
+    for (barcode_name,values) in Collect_barcode.iter(){
+        let barcode_mean:f64=values.iter().map(|&x|x as f64).sum::<f64>()/values.len() as f64;
+        mean_map.insert(barcode_name.clone(), barcode_mean);
+    }
+    println!("mean_map:{:?}",mean_map);
     
     
 
