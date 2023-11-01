@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufReader, BufRead, Lines};
 use std::time::Duration;
-use std::{vec, usize};
+use std::{vec, usize, path};
 use regex::Regex;
 use time::PrimitiveDateTime;
 use std::cmp::Ordering;
@@ -188,5 +188,11 @@ fn main() -> std::io::Result<()> {
 }
 
 fn csv_writer(map_content:HashMap<String,f64>){
-    let mut wtr=writer
+    // creating a csv handler
+    let mut wtr=writer::from_path("Output.csv");
+    let mut writer= match wtr{
+        Ok(writer)=>writer,
+        Err(err)=>return Err(Box::new(err)),
+    };
+    writer.write_records(["Time","Barcode"]);
 }
