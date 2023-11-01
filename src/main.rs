@@ -7,6 +7,9 @@ use std::{vec, usize};
 use regex::Regex;
 use time::PrimitiveDateTime;
 use std::cmp::Ordering;
+use csv::writer;
+
+
 fn after(start:PrimitiveDateTime,time:&u64) ->PrimitiveDateTime{
     start+Duration::new(time*3600, 0)
 }
@@ -52,6 +55,13 @@ struct AddTime{
     added_time:String,
     parsed_time:String,
 
+}
+
+// struct for writing a csv file
+struct WriteFile{
+    time:i32,
+    Barcode:Vec<String>,
+    MRL:Vec<f64>
 }
 fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>, collect_map:&mut HashMap<String,Vec<i32>>){
     // println!("Header line:{:?}",ln_str);
@@ -175,4 +185,8 @@ fn main() -> std::io::Result<()> {
     }
 
     Ok(())
+}
+
+fn csv_writer(map_content:HashMap<String,f64>){
+    let mut wtr=writer
 }
