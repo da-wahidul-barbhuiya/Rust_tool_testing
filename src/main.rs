@@ -3,11 +3,11 @@ use std::error::Error;
 use std::fs::File;
 use std::io::{BufReader, BufRead, Lines};
 use std::time::Duration;
-use std::{vec, usize, path};
+use std::{vec, usize, path, primitive};
 use regex::Regex;
 use time::PrimitiveDateTime;
 use std::cmp::Ordering;
-use csv::writer;
+use csv;
 
 
 fn after(start:PrimitiveDateTime,time:&u64) ->PrimitiveDateTime{
@@ -70,7 +70,7 @@ fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>, collect
         // println!("sequence line:{:?}",next_line);
         if let Ok(next_line_result) =next_line  {
             let line_length: i32=next_line_result.len().try_into().unwrap();
-            println!("Sequence line length:{:?}",line_length);
+            // println!("Sequence line length:{:?}",line_length);
             let barcode_name=barcode_extraction(ln_str);
             collect_map.entry(barcode_name).and_modify(|vec| vec.push(line_length)).or_insert(vec![line_length]);
             
@@ -92,7 +92,7 @@ fn barcode_extraction(lin_str:String)->//std::io::Result<()>{
     let barcode_re=Regex::new(r"barcode=(?P<barcode>\S+)\s*").unwrap();
     if let Some(cap_barcode) = barcode_re.captures(&lin_str) {
         let barcode_str=cap_barcode.name("barcode").unwrap().as_str();
-        println!("barcode string part:{}",barcode_str);
+        // println!("barcode string part:{}",barcode_str);
         return  barcode_str.to_string();
         
     }
@@ -121,7 +121,7 @@ fn main() -> std::io::Result<()> {
                     if parsed_datetime < smallest {
                         smallest_datetime = Some(parsed_datetime);
                         // println!("Parsed time for every frame:{}",parsed_datetime);
-                        println!("Smallesst date time frame ");
+                        // println!("Smallesst date time frame ");
                         // line_count(line_str.clone(), &mut lines,Collect_barcode);
                         // println!("Header line is: {:?}", line_str);
                         // if let Some(next_line) = lines.next() {
@@ -152,9 +152,8 @@ fn main() -> std::io::Result<()> {
                 if let Some(new) =smallest_datetime  {
                 let test_time=after(new, &7);
                 if parsed_datetime< test_time{
-                    println!("Parsed time within the range:{}",parsed_datetime);
+                    //println!("Parsed time within the range:{}",parsed_datetime);
                     line_count(line_str.clone(),&mut lines,&mut Collect_barcode);
-                    
                 }
                     
                 }
@@ -163,22 +162,20 @@ fn main() -> std::io::Result<()> {
         
     }
     // println!("Date time taking vector without sort:{:?}",date_time_take);
-    println!("Collect barcode :{:?}",Collect_barcode);
+    //println!("Collect barcode :{:?}",Collect_barcode);
     let mut mean_map: HashMap<String, f64>=HashMap::new();
     for (barcode_name,values) in Collect_barcode.iter(){
         let barcode_mean:f64=values.iter().map(|&x|x as f64).sum::<f64>()/values.len() as f64;
         mean_map.insert(barcode_name.clone(), barcode_mean);
     }
-    println!("mean_map:{:?}",mean_map);
+    println!("7 hours:{:#?}",mean_map);
     
-    
+    // csv_writer(mean_map);
 
     if let Some(smallest) = smallest_datetime {
         let added_time=after(smallest,&3);
-        println!("Smallest datetime frame: {}", smallest);
-        println!("New added time is :{}",added_time);
-        // let point=AddTime{smallest_time:smallest.to_string(),added_time:added_time.to_string()};
-        // println!("Struct field value :{:?}",point);
+        // println!("Smallest datetime frame: {}", smallest);
+        // println!("New added time is :{}",added_time);
         
     } else {
         println!("No datetime frames found in the file.");
@@ -186,13 +183,36 @@ fn main() -> std::io::Result<()> {
 
     Ok(())
 }
-
-fn csv_writer(map_content:HashMap<String,f64>){
-    // creating a csv handler
-    let mut wtr=writer::from_path("Output.csv");
-    let mut writer= match wtr{
-        Ok(writer)=>writer,
-        Err(err)=>return Err(Box::new(err)),
-    };
-    writer.write_records(["Time","Barcode"]);
-}
+// fn csv_writer(map_content:HashMap<String,f64>){
+//     // creating a csv handler
+//     let mut wtr=csv::Writer::from_path("Output.csv");
+//     let mut writer= match wtr{
+//         Ok(writer)=>writer,
+//         Err(err)=>return (),
+//     };
+//     for (keys,_) in &map_content{
+//         let new_keys: Vec<String> = map_content.keys().cloned().collect();
+//         let header=match writer.write_record(&[&keys]) {
+//             Ok(header)=> header,
+//             Err(err) => return (),
+            
+//         };
+//     }
+//     // for (_,values) in &map_content{
+//     //     let new_values: Vec<&str> = map_content.values().map(|value| value.to_string().as_str()).collect();
+//     //     let records_value=match writer.write_record(&[&new_values]){
+//     //         Ok(records_value)=> records_value,
+//     //         Err(err)=> return (),
+//     //     };
+//     // }
+//     // writer.write_record(&["Time","Barcode"]);
+//     // for (key,value) in map_content{
+//     //     let record_result=match writer.write_record(&[
+//     //         "7th hour",
+//     //         &value.to_string(),
+//     //     ]){
+//     //         Ok(record_result) => record_result,
+//     //         Err(err) => return (),            
+//     //     };
+//     // }
+// }
