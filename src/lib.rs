@@ -144,28 +144,21 @@ mod test{
                 
             }
         }
-        
-        
-        // let actual=records.end_time().unwrap();
-        // let config_test=Config{time_hr:3,file_name:reader};
-        // let actual=records.end_time(config_test,PrimitiveDateTime::new(date!(2023-06-01), time!(12:47:06)));
-        
-        
-
+       
     }
-    // fn smallest_time_extraction_test(){
-    //     let text="@reads1 start_time=2023-06-01T12:47:06.339862+05:30\nA\n+\n@";
-    //     let mut file=Builder::new().suffix(".fastq").tempfile().unwrap();
-    //     file.write_all(text.as_bytes()).unwrap();
+    fn smallest_time_extraction_test(){
+        let text="@reads1 start_time=2023-06-01T12:47:06.339862+05:30\nA\n+\n@";
+        let mut file=Builder::new().suffix(".fastq").tempfile().unwrap();
+        file.write_all(text.as_bytes()).unwrap();
 
-    //     let mut reader=parse_fastx_file(file.path()).unwrap();
-    //     let rec=reader.next().unwrap();
-    //     let records=rec.unwrap();
-    //     // let actual=records.end_time().unwrap();
-    //     let config_test=Config{time_hr:3,file_name:reader};
-    //     let actual=records.end_time(config_test,PrimitiveDateTime::new(date!(2023-06-01), time!(12:47:06)));
+        let mut reader=parse_fastx_file(file.path()).unwrap();
+        let rec=reader.next().unwrap();
+        let records=rec.unwrap();
+        // let actual=records.end_time().unwrap();
+        let config_test=Config{time_hr:3,file_name:reader};
+        let actual=records.end_time(config_test,PrimitiveDateTime::new(date!(2023-06-01), time!(12:47:06)));
         
-    //     let expected_time=PrimitiveDateTime::new(date!(2023-06-01), time!(15:47:06));
-    //     assert_eq!(actual,expected_time)
-    // }
+        let expected_time=PrimitiveDateTime::new(date!(2023-06-01), time!(15:47:06));
+        assert_eq!(actual,expected_time)
+    }
 }
