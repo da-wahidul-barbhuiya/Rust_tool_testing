@@ -11,9 +11,9 @@ use time::PrimitiveDateTime;
 
 
 
-pub trait FastqTimeRead {
+pub trait FastqFileRead {
     fn end_time(self,start:PrimitiveDateTime)->PrimitiveDateTime;
-    // fn 
+    fn count_line(self, collect_map:&mut HashMap<String,Vec<i32>>)->&mut HashMap<String, Vec<i32>>;
 }
 
 
@@ -39,36 +39,70 @@ impl Config{
         Ok(Config { time_hr: time_hr_i64, file_name: file })
     }
 }
-impl FastqTimeRead for Config {
+impl FastqFileRead for Config {
     fn end_time(self,start:PrimitiveDateTime) ->PrimitiveDateTime{
         start+Duration::new(self.time_hr*3600, 0)
     }
+    fn count_line(self, collect_map:&mut HashMap<String,Vec<i32>>)-> &mut HashMap<String, Vec<i32>>{
+        let reader=BufReader::new(self.file_name);
+        let mut line=reader.lines();
+        if let Some(next_line) =line.next()  {
+            
+            // println!("sequence line:{:?}",next_line);
+            if let Ok(next_line_result) =next_line  {
+                let line_length: i32=next_line_result.len().try_into().unwrap();
+                // println!("Sequence line length:{:?}",line_length);
+                let line_itr=line.next().unwrap();
+                let lin_str=line_itr.unwrap();
+ 
+                let barcode_name=barcode_extraction(lin_str);
+                // let barcode_name_cl=barcode_name.clone();
+                collect_map.entry(barcode_name).and_modify(|vec| vec.push(line_length)).or_insert(vec![line_length]);
+                
+            }else if let Err(err)=next_line {
+                eprintln!("Error reading line:{:?}",err);
+                
+            };
+            
+        }
+        if let Some(after_next_line) =line.next()  {
+            // println!("Plus line:{:?}",after_next_line);
+        }
+        if let Some(fourth_line) =line.next()  {
+            // println!("QC line:{:?}",fourth_line);
+        }
+        collect_map
+        
+    }
+    
 }
 
-pub fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>, collect_map:&mut HashMap<String,Vec<i32>>){
-    // println!("Header line:{:?}",ln_str);
-    if let Some(next_line) =line.next()  {
+
+    
+// pub fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>, collect_map:&mut HashMap<String,Vec<i32>>){
+//     // println!("Header line:{:?}",ln_str);
+//     if let Some(next_line) =line.next()  {
         
-        // println!("sequence line:{:?}",next_line);
-        if let Ok(next_line_result) =next_line  {
-            let line_length: i32=next_line_result.len().try_into().unwrap();
-            // println!("Sequence line length:{:?}",line_length);
-            let barcode_name=barcode_extraction(ln_str);
-            collect_map.entry(barcode_name).and_modify(|vec| vec.push(line_length)).or_insert(vec![line_length]);
+//         // println!("sequence line:{:?}",next_line);
+//         if let Ok(next_line_result) =next_line  {
+//             let line_length: i32=next_line_result.len().try_into().unwrap();
+//             // println!("Sequence line length:{:?}",line_length);
+//             let barcode_name=barcode_extraction(self);
+//             collect_map.entry(barcode_name).and_modify(|vec| vec.push(line_length)).or_insert(vec![line_length]);
             
-        }else if let Err(err)=next_line {
-            eprintln!("Error reading line:{:?}",err);
+//         }else if let Err(err)=next_line {
+//             eprintln!("Error reading line:{:?}",err);
             
-        };
+//         };
         
-    }
-    if let Some(after_next_line) =line.next()  {
-        // println!("Plus line:{:?}",after_next_line);
-    }
-    if let Some(fourth_line) =line.next()  {
-        // println!("QC line:{:?}",fourth_line);
-    }
-}
+//     }
+//     if let Some(after_next_line) =line.next()  {
+//         // println!("Plus line:{:?}",after_next_line);
+//     }
+//     if let Some(fourth_line) =line.next()  {
+//         // println!("QC line:{:?}",fourth_line);
+//     }
+// }
 
 pub fn time_extraction(mut lines:Lines<BufReader<File>>)-> Option<PrimitiveDateTime>{
     let date_time_re:Regex=Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
@@ -106,18 +140,17 @@ pub fn time_extraction(mut lines:Lines<BufReader<File>>)-> Option<PrimitiveDateT
     smallest_datetime
 
 }
-pub fn barcode_extraction(lin_str:String)->//std::io::Result<()>{
-    String{
-    let barcode_re=Regex::new(r"barcode=(?P<barcode>\S+)\s*").unwrap();
-    if let Some(cap_barcode) = barcode_re.captures(&lin_str) {
-        let barcode_str=cap_barcode.name("barcode").unwrap().as_str();
-        // println!("barcode string part:{}",barcode_str);
-        return  barcode_str.to_string();
-        
+    pub fn barcode_extraction(lin_str:String)-> String{
+        let barcode_re=Regex::new(r"barcode=(?P<barcode>\S+)\s*").unwrap();
+        if let Some(cap_barcode) = barcode_re.captures(&lin_str) {
+            let barcode_str=cap_barcode.name("barcode").unwrap().as_str();
+            // println!("barcode string part:{}",barcode_str);
+            return  barcode_str.to_string();
+            
+        }
+        String::new()
     }
-    // Ok(())
-    String::new()
-}
+
 
 #[cfg(test)]
 mod test{
@@ -178,5 +211,21 @@ mod test{
         let expected_time=Some(PrimitiveDateTime::new(date!(2023-06-01), time!(12:47:06)));
         
         assert_eq!(actual_time,expected_time)
+    }
+    #[test]
+    fn barcode_extract_test(){
+        let text="@reads1 start_time=2023-06-01T12:47:06.339862+05:30 barcode=barcode01\nA\n+\n@\n@reads2 start_time=2023-06-01T13:56:04.339862+05:30 barcode=barcode02\nT\n+\n#";
+        let mut file=Builder::new().suffix(".fastq").tempfile().unwrap();
+        file.write_all(text.as_bytes()).unwrap();
+        let test_file=File::open(file.path()).unwrap();
+        // let rec=BufReader::new(test_file);
+        // let line=rec.lines();
+        let mut barcode_map:HashMap<String,Vec<i32>>=HashMap::new(); 
+        let config_test=Config{time_hr:3,file_name:test_file};
+        let mut expected_map:HashMap<String,Vec<i32>>=HashMap::new(); 
+        let actual=config_test.count_line(&mut barcode_map);
+        assert_eq!(actual,&mut expected_map);
+        
+        
     }
 }
