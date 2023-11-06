@@ -168,7 +168,7 @@
 // // }
 
 
-
+use std::collections::HashMap;
 use std::env;
 use std::process;
 use NextLineTest::Config;
@@ -185,4 +185,7 @@ fn main() {
     //     println!("Application error:{e}");
     //     process::exit(1);
     // }
+    let mut Collect_barcode:HashMap<String,Vec<i32>>=HashMap::new(); 
+    let get_barcode=NextLineTest::FastqFileRead::count_line(config,  &mut Collect_barcode);
+    println!("Collecting all barocodes with their mrl:{:?}",get_barcode);
 }
