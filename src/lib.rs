@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::io::{BufReader, BufRead, Lines};
+use std::thread::Builder;
 use std::{vec, usize, path, primitive};
 use regex::Regex;
 use std::cmp::Ordering;
@@ -11,7 +12,7 @@ use time::PrimitiveDateTime;
 
 
 pub trait FastqTimeRead {
-    fn end_time(time:&Self,start:PrimitiveDateTime)->PrimitiveDateTime;
+    fn end_time(self,start:PrimitiveDateTime)->PrimitiveDateTime;
     // fn 
 }
 
@@ -39,8 +40,8 @@ impl Config{
     }
 }
 impl FastqTimeRead for Config {
-    fn end_time(time:&Self,start:PrimitiveDateTime) ->PrimitiveDateTime{
-        start+Duration::new(time.time_hr*3600, 0)
+    fn end_time(self,start:PrimitiveDateTime) ->PrimitiveDateTime{
+        start+Duration::new(self.time_hr*3600, 0)
     }
 }
 
@@ -69,7 +70,7 @@ pub fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>, col
     }
 }
 
-pub fn time_extraction(mut lines:Lines<BufReader<File>>){
+pub fn time_extraction(mut lines:Lines<BufReader<File>>)-> Option<PrimitiveDateTime>{
     let date_time_re:Regex=Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
     let mut smallest_datetime:Option<PrimitiveDateTime>=None;
     while let Some(line)=lines.next() {
@@ -78,17 +79,31 @@ pub fn time_extraction(mut lines:Lines<BufReader<File>>){
             let datetime_str=captures.name("time").unwrap().as_str();
             let sliced_datetime=&datetime_str[..19];
             if let Ok(parsed_datetime)=PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S"){
-                if let Some(smallest)=smallest_datetime{
-                    if parsed_datetime<smallest{
-                        smallest_datetime=Some(parsed_datetime);
-                    }else {
+                // if let Some(smallest)=smallest_datetime{
+                //     if parsed_datetime<smallest{
+                //         smallest_datetime=Some(parsed_datetime);
+                //     }else {
+                //         smallest_datetime=Some(parsed_datetime);
+                //     }
+                // }
+                match smallest_datetime {
+                    Some(smallest)=>{
+                        if parsed_datetime<smallest{
+                            smallest_datetime=Some(parsed_datetime);
+                        }
+                    }
+                    None=>{
                         smallest_datetime=Some(parsed_datetime);
                     }
+                    
                 }
             }
         }
         
     }
+    
+    
+    smallest_datetime
 
 }
 pub fn barcode_extraction(lin_str:String)->//std::io::Result<()>{
@@ -111,15 +126,9 @@ mod test{
     use std::io::Write;
     use tempfile::Builder;
     use needletail::parse_fastx_file;
+
     #[test]
-    fn end_time_test(){
-        let start_time=PrimitiveDateTime::new(date!(2023-06-01), time!(12:47:06));
-        let added_time=start_time+Duration::new(3*3600, 0);
-        let expected_time=PrimitiveDateTime::new(date!(2023-06-01), time!(15:47:06));
-        assert_eq!(added_time,expected_time)
-    }
-    #[test]
-    fn end_time_fastq_file_test(){
+    fn time_extract_test(){
         let text="@reads1 start_time=2023-06-01T12:47:06.339862+05:30\nA\n+\n@";
         let mut file=Builder::new().suffix(".fastq").tempfile().unwrap();
         file.write_all(text.as_bytes()).unwrap();
@@ -138,7 +147,6 @@ mod test{
             if let Some(captures) =date_time_test.captures(&line_str)  {
                 let datetime_test_str=captures.name("time").unwrap().as_str();
                 let sliced_datetime_test=&datetime_test_str[..19];
-                let expected_time=PrimitiveDateTime::parse("2023-06-01T12:47:06", "%Y-%m-%dT%H:%M:%S").unwrap().to_string();
                 // let expected_time=PrimitiveDateTime::new(datetime!());
                 assert_eq!(sliced_datetime_test,"2023-06-01T12:47:06")
                 
@@ -146,19 +154,29 @@ mod test{
         }
        
     }
-    fn smallest_time_extraction_test(){
+    #[test]
+    fn added_time_test(){
         let text="@reads1 start_time=2023-06-01T12:47:06.339862+05:30\nA\n+\n@";
         let mut file=Builder::new().suffix(".fastq").tempfile().unwrap();
         file.write_all(text.as_bytes()).unwrap();
-
-        let mut reader=parse_fastx_file(file.path()).unwrap();
-        let rec=reader.next().unwrap();
-        let records=rec.unwrap();
-        // let actual=records.end_time().unwrap();
-        let config_test=Config{time_hr:3,file_name:reader};
-        let actual=records.end_time(config_test,PrimitiveDateTime::new(date!(2023-06-01), time!(12:47:06)));
-        
+        let test_file=File::open(file.path()).unwrap();
+        let config_test=Config{time_hr:3,file_name:test_file};
+        let actual=config_test.end_time(PrimitiveDateTime::new(date!(2023-06-01), time!(12:47:06)));
         let expected_time=PrimitiveDateTime::new(date!(2023-06-01), time!(15:47:06));
         assert_eq!(actual,expected_time)
+    }
+    // testing for smallest time frame from the file
+    #[test]
+    fn smallest_time_test(){
+        let text="@reads1 start_time=2023-06-01T12:47:06.339862+05:30\nA\n+\n@\n@reads2 start_time=2023-06-01T13:56:04.339862+05:30\nT\n+\n#";
+        let mut file=Builder::new().suffix(".fastq").tempfile().unwrap();
+        file.write_all(text.as_bytes()).unwrap();
+        let test_file=File::open(file.path()).unwrap();
+        let rec=BufReader::new(test_file);
+        let line=rec.lines();
+        let actual_time=time_extraction(line);
+        let expected_time=Some(PrimitiveDateTime::new(date!(2023-06-01), time!(12:47:06)));
+        
+        assert_eq!(actual_time,expected_time)
     }
 }
