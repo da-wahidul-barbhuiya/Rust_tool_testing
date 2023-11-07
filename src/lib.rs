@@ -7,13 +7,13 @@ use regex::Regex;
 use std::cmp::Ordering;
 use csv;
 use std::{fs::File, time::Duration};
-use time::PrimitiveDateTime;
-
+use time::{PrimitiveDateTime, date,time};
 
 
 pub trait FastqFileRead {
-    fn end_time(self,start:PrimitiveDateTime)->PrimitiveDateTime;
+    fn end_time(&self,start:PrimitiveDateTime)->PrimitiveDateTime;
     fn count_line(self, collect_map:&mut HashMap<String,Vec<i32>>)->&mut HashMap<String, Vec<i32>>;
+    fn get_line( self, collect_map:&mut HashMap<String,Vec<i32>>)->PrimitiveDateTime;
 }
 
 
@@ -40,12 +40,13 @@ impl Config{
     }
 }
 impl FastqFileRead for Config {
-    fn end_time(self,start:PrimitiveDateTime) ->PrimitiveDateTime{
+    fn end_time(&self,start:PrimitiveDateTime) ->PrimitiveDateTime{
         start+Duration::new(self.time_hr*3600, 0)
     }
     fn count_line(self, collect_map:&mut HashMap<String,Vec<i32>>)-> &mut HashMap<String, Vec<i32>>{
         let reader=BufReader::new(self.file_name);
         let mut line=reader.lines();
+        
         if let Some(next_line) =line.next()  {
             
             // println!("sequence line:{:?}",next_line);
@@ -74,9 +75,46 @@ impl FastqFileRead for Config {
         collect_map
         
     }
+    fn get_line( self, collect_map:&mut HashMap<String,Vec<i32>>)->PrimitiveDateTime {
+        let reader=BufReader::new(&self.file_name);
+        let mut lines=reader.lines();
+        let mut smallest_datetime:Option<PrimitiveDateTime>=None;
+        let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
+        // let mut end_time:PrimitiveDateTime = Default::default();
+        while let Some(line)=lines.next() {
+            let line_str=line.unwrap();
+            if let Some(captures) = date_time_re.captures(&line_str) {
+                let datetime_str = captures.name("time").unwrap().as_str();
+                let sliced_datetime=&datetime_str[..19];
+                if let  Ok(parsed_datetime)= PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
+                    if let Some(new) =smallest_datetime  {
+                        if parsed_datetime<new{
+                            smallest_datetime=Some(parsed_datetime);
+                            println!("Smallest date time frame:{:?}",smallest_datetime);
+                            if let Some(new2) =smallest_datetime  {
+                                let  end_time=self.end_time( new2);
+                                // println!("Added time is :{}",end_time);
+                                return end_time;
+                                
+                            }
+                            
+                        }
+                        else {
+                            smallest_datetime=Some(parsed_datetime)
+                        }
+                        
+
+                    }
+                }
+            }
+        }
+        PrimitiveDateTime::new(date!(1930-01-01), time!(0:00)) 
+    }
+    
+    
+
     
 }
-
 
     
 // pub fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>, collect_map:&mut HashMap<String,Vec<i32>>){
