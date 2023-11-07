@@ -175,7 +175,7 @@ use NextLineTest::Config;
 fn main() {
     let args:Vec<String>=env::args().collect();
 
-    let config=Config::build(&args).unwrap_or_else(|err|{
+    let  config=Config::build(&args).unwrap_or_else(|err|{
         println!("Problem parsing arguments:{err}");
         process::exit(1);
     });
@@ -186,6 +186,8 @@ fn main() {
     //     process::exit(1);
     // }
     let mut Collect_barcode:HashMap<String,Vec<i32>>=HashMap::new(); 
-    let get_barcode=NextLineTest::FastqFileRead::count_line(config,  &mut Collect_barcode);
-    println!("Collecting all barocodes with their mrl:{:?}",get_barcode);
+    // let get_barcode=NextLineTest::FastqFileRead::count_line(config,  &mut Collect_barcode);
+    // println!("Collecting all barocodes with their mrl:{:?}",get_barcode);
+    let Line_count=NextLineTest::FastqFileRead::get_line(config, &mut Collect_barcode);
+    println!("Added time:{:?}",Line_count)
 }
