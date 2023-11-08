@@ -45,32 +45,36 @@ impl FastqFileRead for Config {
     }
     fn count_line(self, collect_map:&mut HashMap<String,Vec<i32>>)-> &mut HashMap<String, Vec<i32>>{
         let reader=BufReader::new(self.file_name);
-        let mut line=reader.lines();
+        let mut lines=reader.lines();
+        while let Some(line) =lines.next()  {
+            let line_str=line.unwrap();
+            // println!("Header line:{}",line_str);
         
-        if let Some(next_line) =line.next()  {
-            
-            // println!("sequence line:{:?}",next_line);
-            if let Ok(next_line_result) =next_line  {
-                let line_length: i32=next_line_result.len().try_into().unwrap();
-                // println!("Sequence line length:{:?}",line_length);
-                let line_itr=line.next().unwrap();
-                let lin_str=line_itr.unwrap();
- 
-                let barcode_name=barcode_extraction(lin_str);
-                // let barcode_name_cl=barcode_name.clone();
-                collect_map.entry(barcode_name).and_modify(|vec| vec.push(line_length)).or_insert(vec![line_length]);
+            if let Some(next_line) =lines.next()  {
                 
-            }else if let Err(err)=next_line {
-                eprintln!("Error reading line:{:?}",err);
+                // println!("sequence line:{:?}",next_line);
+                if let Ok(next_line_result) =next_line  {
+                    let line_length: i32=next_line_result.len().try_into().unwrap();
+                    println!("Sequence line length:{:?}",line_length);
+                    // let line_itr=lines.next().unwrap();
+                    // let lin_str=line_itr.unwrap();
+    
+                    let barcode_name=barcode_extraction(line_str);
+                    // let barcode_name_cl=barcode_name.clone();
+                    collect_map.entry(barcode_name).and_modify(|vec| vec.push(line_length)).or_insert(vec![line_length]);
+                    
+                }else if let Err(err)=next_line {
+                    eprintln!("Error reading line:{:?}",err);
+                    
+                };
                 
-            };
-            
-        }
-        if let Some(after_next_line) =line.next()  {
-            // println!("Plus line:{:?}",after_next_line);
-        }
-        if let Some(fourth_line) =line.next()  {
-            // println!("QC line:{:?}",fourth_line);
+            }
+            if let Some(after_next_line) =lines.next()  {
+                // println!("Plus line:{:?}",after_next_line);
+            }
+            if let Some(fourth_line) =lines.next()  {
+                // println!("QC line:{:?}",fourth_line);
+            }
         }
         collect_map
         
@@ -91,74 +95,23 @@ impl FastqFileRead for Config {
                         Some(smallest)=>{
                             if parsed_datetime <smallest  {
                                 smallest_datetime=Some(parsed_datetime);
-                                let end_time=self.end_time(smallest);
-                                return end_time;
-                                
+                                if let Some(start_time) = smallest_datetime {
+                                    let end_time=self.end_time(start_time);
+                                    return end_time;
+                                }
                             }
-
                         }
                         None=>{
                             smallest_datetime=Some(parsed_datetime);
                         }
-                        
                     }
-                    // if let Some(smallest) =smallest_datetime  {
-                    //     if parsed_datetime<smallest{
-                    //         smallest_datetime=Some(parsed_datetime);
-                    //         if let Some(new2) =smallest_datetime  {
-                    //             let  end_time=self.end_time( new2);
-                    //             // println!("Added time is :{}",end_time);
-                    //             return end_time;
-                                
-                    //         }
-                            
-                    //     }
-                    //     else {
-                    //         smallest_datetime=Some(parsed_datetime)
-                    //     }
-                        
-
-                    // }
-                    // else {
-                    //     eprintln!("Error parsing smallest time frame!")
-                    // }
                 }
             }
         }
-        PrimitiveDateTime::new(date!(1930-01-01), time!(0:00)) 
+        PrimitiveDateTime::new(date!(1930-01-01), time!(0:00)) //this is dummy value ; replace this with some error handling stuff
     }
     
-    
-
-    
 }
-
-    
-// pub fn line_count(ln_str:String,  line:&mut std::io::Lines<BufReader<File>>, collect_map:&mut HashMap<String,Vec<i32>>){
-//     // println!("Header line:{:?}",ln_str);
-//     if let Some(next_line) =line.next()  {
-        
-//         // println!("sequence line:{:?}",next_line);
-//         if let Ok(next_line_result) =next_line  {
-//             let line_length: i32=next_line_result.len().try_into().unwrap();
-//             // println!("Sequence line length:{:?}",line_length);
-//             let barcode_name=barcode_extraction(self);
-//             collect_map.entry(barcode_name).and_modify(|vec| vec.push(line_length)).or_insert(vec![line_length]);
-            
-//         }else if let Err(err)=next_line {
-//             eprintln!("Error reading line:{:?}",err);
-            
-//         };
-        
-//     }
-//     if let Some(after_next_line) =line.next()  {
-//         // println!("Plus line:{:?}",after_next_line);
-//     }
-//     if let Some(fourth_line) =line.next()  {
-//         // println!("QC line:{:?}",fourth_line);
-//     }
-// }
-
 pub fn time_extraction(mut lines:Lines<BufReader<File>>)-> Option<PrimitiveDateTime>{
     let date_time_re:Regex=Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
     let mut smallest_datetime:Option<PrimitiveDateTime>=None;
@@ -273,11 +226,11 @@ mod test{
         let mut file=Builder::new().suffix(".fastq").tempfile().unwrap();
         file.write_all(text.as_bytes()).unwrap();
         let test_file=File::open(file.path()).unwrap();
-        // let rec=BufReader::new(test_file);
-        // let line=rec.lines();
         let mut barcode_map:HashMap<String,Vec<i32>>=HashMap::new(); 
         let config_test=Config{time_hr:3,file_name:test_file};
         let mut expected_map:HashMap<String,Vec<i32>>=HashMap::new(); 
+        expected_map.insert(String::from("barcode01"), [1].to_vec());
+        expected_map.insert(String::from("barcode02"), [1].to_vec());
         let actual=config_test.count_line(&mut barcode_map);
         assert_eq!(actual,&mut expected_map);
         
