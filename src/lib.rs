@@ -13,7 +13,9 @@ use time::{PrimitiveDateTime, date,time};
 pub trait FastqFileRead {
     fn end_time(&self,start:PrimitiveDateTime)->PrimitiveDateTime;
     fn count_line(self, collect_map:&mut HashMap<String,Vec<i32>>)->&mut HashMap<String, Vec<i32>>;
-    fn get_line( self, collect_map:&mut HashMap<String,Vec<i32>>)->PrimitiveDateTime;
+    fn start_time( &self)->PrimitiveDateTime;
+    fn get_line( &self)->PrimitiveDateTime;
+    fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>);
 }
 
 
@@ -79,7 +81,39 @@ impl FastqFileRead for Config {
         collect_map
         
     }
-    fn get_line( self, collect_map:&mut HashMap<String,Vec<i32>>)->PrimitiveDateTime {
+
+    fn start_time( &self)->PrimitiveDateTime {
+        let reader=BufReader::new(&self.file_name);
+        let mut lines=reader.lines();
+        let mut smallest_datetime:Option<PrimitiveDateTime>=None;
+        let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
+        // let mut end_time:PrimitiveDateTime = Default::default();
+        while let Some(line)=lines.next() {
+            let line_str=line.unwrap();
+            if let Some(captures) = date_time_re.captures(&line_str) {
+                let datetime_str = captures.name("time").unwrap().as_str();
+                let sliced_datetime=&datetime_str[..19];
+                if let  Ok(parsed_datetime)= PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
+                    match smallest_datetime {
+                        Some(smallest)=>{
+                            if parsed_datetime <smallest  {
+                                smallest_datetime=Some(parsed_datetime);
+                                if let Some(start_time) = smallest_datetime {
+                                    
+                                    return smallest;
+                                }
+                            }
+                        }
+                        None=>{
+                            smallest_datetime=Some(parsed_datetime);
+                        }
+                    }
+                }
+            }
+        }
+        PrimitiveDateTime::new(date!(1930-01-01), time!(0:00)) //this is dummy value ; replace this with some error handling stuff
+    }
+    fn get_line( &self)->PrimitiveDateTime {
         let reader=BufReader::new(&self.file_name);
         let mut lines=reader.lines();
         let mut smallest_datetime:Option<PrimitiveDateTime>=None;
@@ -109,6 +143,38 @@ impl FastqFileRead for Config {
             }
         }
         PrimitiveDateTime::new(date!(1930-01-01), time!(0:00)) //this is dummy value ; replace this with some error handling stuff
+    }
+    fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>){
+        let reader=BufReader::new(&self.file_name);
+        let mut lines=reader.lines();
+        let smallest_time:Option<PrimitiveDateTime>=None;
+        let target_time:Option<PrimitiveDateTime>=None;
+        let end_time:Option<PrimitiveDateTime>=None;
+        let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
+        
+        while let Some(line) =lines.next()  {
+            let header=line.unwrap();
+            let starting_time=self.start_time();
+            let added_time=self.get_line();
+            match target_time {
+                Some(target)=>{
+                    if starting_time<target && target< added_time{
+                        println!("Header line is :{}",header);
+                    }
+                }
+                None=>{eprintln!("Something went wrong")}
+                
+            }
+            // if let Some(next_line)=lines.next(){
+            //     if let Ok(sequence) =next_line  {
+            //         let seq_len:i32=sequence.len().try_into().unwrap();
+            //         let barcode_name=barcode_extraction(header);
+            //         barcode_map.entry(barcode_name).and_modify(|vec| vec.push(seq_len)).or_insert(vec![seq_len]);
+            //     }
+            // }
+            
+        }
+
     }
     
 }

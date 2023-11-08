@@ -186,8 +186,11 @@ fn main() {
     //     process::exit(1);
     // }
     let mut Collect_barcode:HashMap<String,Vec<i32>>=HashMap::new(); 
-    let get_barcode=NextLineTest::FastqFileRead::count_line(config,  &mut Collect_barcode);
-    println!("Collecting all barocodes with their mrl:{:?}",get_barcode);
+    // let get_barcode=NextLineTest::FastqFileRead::count_line(config,  &mut Collect_barcode);
+    // println!("Collecting all barocodes with their mrl:{:?}",get_barcode);
     // let Line_count=NextLineTest::FastqFileRead::get_line(config, &mut Collect_barcode);
     // println!("Added time:{:?}",Line_count)
+    let time_btn=NextLineTest::FastqFileRead::in_btn_time(&config, &mut Collect_barcode);
+    let start_time=NextLineTest::FastqFileRead::start_time(&config);
+    println!("Start time is {}",start_time);
 }
