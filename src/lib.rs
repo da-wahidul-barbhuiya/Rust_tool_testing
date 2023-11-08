@@ -87,24 +87,41 @@ impl FastqFileRead for Config {
                 let datetime_str = captures.name("time").unwrap().as_str();
                 let sliced_datetime=&datetime_str[..19];
                 if let  Ok(parsed_datetime)= PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
-                    if let Some(new) =smallest_datetime  {
-                        if parsed_datetime<new{
-                            smallest_datetime=Some(parsed_datetime);
-                            println!("Smallest date time frame:{:?}",smallest_datetime);
-                            if let Some(new2) =smallest_datetime  {
-                                let  end_time=self.end_time( new2);
-                                // println!("Added time is :{}",end_time);
+                    match smallest_datetime {
+                        Some(smallest)=>{
+                            if parsed_datetime <smallest  {
+                                smallest_datetime=Some(parsed_datetime);
+                                let end_time=self.end_time(smallest);
                                 return end_time;
                                 
                             }
-                            
+
                         }
-                        else {
-                            smallest_datetime=Some(parsed_datetime)
+                        None=>{
+                            smallest_datetime=Some(parsed_datetime);
                         }
                         
-
                     }
+                    // if let Some(smallest) =smallest_datetime  {
+                    //     if parsed_datetime<smallest{
+                    //         smallest_datetime=Some(parsed_datetime);
+                    //         if let Some(new2) =smallest_datetime  {
+                    //             let  end_time=self.end_time( new2);
+                    //             // println!("Added time is :{}",end_time);
+                    //             return end_time;
+                                
+                    //         }
+                            
+                    //     }
+                    //     else {
+                    //         smallest_datetime=Some(parsed_datetime)
+                    //     }
+                        
+
+                    // }
+                    // else {
+                    //     eprintln!("Error parsing smallest time frame!")
+                    // }
                 }
             }
         }
