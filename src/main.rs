@@ -190,7 +190,10 @@ fn main() {
     // println!("Collecting all barocodes with their mrl:{:?}",get_barcode);
     // let Line_count=NextLineTest::FastqFileRead::get_line(config, &mut Collect_barcode);
     // println!("Added time:{:?}",Line_count)
-    let time_btn=NextLineTest::FastqFileRead::in_btn_time(&config, &mut Collect_barcode);
     let start_time=NextLineTest::FastqFileRead::start_time(&config);
     println!("Start time is {}",start_time);
+    let time_btn=NextLineTest::FastqFileRead::in_btn_time(&config, &mut Collect_barcode);
+    println!("Apna time ayega{:?}",time_btn);
+    
+
 }

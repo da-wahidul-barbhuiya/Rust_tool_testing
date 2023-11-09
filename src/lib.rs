@@ -24,6 +24,33 @@ pub struct Config{
     pub time_hr:u64,
     pub file_name:File,
 }
+
+
+//creating a struct and its match expression for barcode and time extraction using regular expression
+/*
+struct ExtractionProcess{
+    time:PrimitiveDateTime,
+    barcode:String
+}
+fn something(config:Config){
+    file
+    match output{
+        config.time=>{ 
+            let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
+
+        }
+        config.barcode=>{
+            let barcode_re=Regex::new(r"barcode=(?P<barcode>\S+)\s*").unwrap();
+        }
+    }
+
+}
+
+
+
+
+
+*/
 impl Config{
     pub fn build<a>(args:&[a]) ->Result<Config,&'static str>
     where a:AsRef<str>{
@@ -98,10 +125,7 @@ impl FastqFileRead for Config {
                         Some(smallest)=>{
                             if parsed_datetime <smallest  {
                                 smallest_datetime=Some(parsed_datetime);
-                                if let Some(start_time) = smallest_datetime {
-                                    
-                                    return smallest;
-                                }
+                                return  smallest_datetime.unwrap();
                             }
                         }
                         None=>{
@@ -147,23 +171,45 @@ impl FastqFileRead for Config {
     fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>){
         let reader=BufReader::new(&self.file_name);
         let mut lines=reader.lines();
-        let smallest_time:Option<PrimitiveDateTime>=None;
-        let target_time:Option<PrimitiveDateTime>=None;
+        let mut smallest_time:Option<PrimitiveDateTime>=None;
+        let mut target_time:Option<PrimitiveDateTime>=None;
         let end_time:Option<PrimitiveDateTime>=None;
         let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
         
         while let Some(line) =lines.next()  {
             let header=line.unwrap();
-            let starting_time=self.start_time();
-            let added_time=self.get_line();
-            match target_time {
-                Some(target)=>{
-                    if starting_time<target && target< added_time{
-                        println!("Header line is :{}",header);
+            // let starting_time=self.start_time();
+            // let added_time=self.get_line();
+            if let Some(captures)=date_time_re.captures(&header){
+                let datetime_str=captures.name("time").unwrap().as_str();
+                let sliced_datetime=&datetime_str[..19];
+                if let Ok(parsed_datetime)  =PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
+                    match smallest_time {
+                        smallest_zone=>{
+                            if let Some(smallest) =smallest_zone  {
+                                println!("Smallest time zone from the  function:{:?}",smallest);
+                                if parsed_datetime<smallest{
+                                    smallest_time=Some(parsed_datetime);
+                                    if let Some(start_time) = smallest_time {
+                                        let end_time=self.end_time(start_time);
+                                        match target_time {
+                                            Some(target_frame)=>{
+                                                if target_frame> start_time && target_frame< end_time{
+                                                    println!("Target time in the time frame:{:?}",target_frame);
+                                                }
+                                            }
+                                            None=> println!("None")
+                                        }
+                                        
+                                    }
+                                }
+                                
+                            }
+                        }
+                        None=>{eprintln!("Something went wrong")}
+                        
                     }
                 }
-                None=>{eprintln!("Something went wrong")}
-                
             }
             // if let Some(next_line)=lines.next(){
             //     if let Ok(sequence) =next_line  {
