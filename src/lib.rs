@@ -176,49 +176,24 @@ impl FastqFileRead for Config {
         let end_time:Option<PrimitiveDateTime>=None;
         let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
         
-        while let Some(line) =lines.next()  {
-            let header=line.unwrap();
-            // let starting_time=self.start_time();
-            // let added_time=self.get_line();
-            if let Some(captures)=date_time_re.captures(&header){
-                let datetime_str=captures.name("time").unwrap().as_str();
-                let sliced_datetime=&datetime_str[..19];
-                if let Ok(parsed_datetime)  =PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
-                    match smallest_time {
-                        smallest_zone=>{
-                            if let Some(smallest) =smallest_zone  {
-                                println!("Smallest time zone from the  function:{:?}",smallest);
-                                if parsed_datetime<smallest{
-                                    smallest_time=Some(parsed_datetime);
-                                    if let Some(start_time) = smallest_time {
-                                        let end_time=self.end_time(start_time);
-                                        match target_time {
-                                            Some(target_frame)=>{
-                                                if target_frame> start_time && target_frame< end_time{
-                                                    println!("Target time in the time frame:{:?}",target_frame);
-                                                }
-                                            }
-                                            None=> println!("None")
-                                        }
-                                        
-                                    }
-                                }
-                                
-                            }
+        while let Some(line) = lines.next() {
+            let header = line.unwrap();
+        
+            if let Some(captures) = date_time_re.captures(&header) {
+                let datetime_str = captures.name("time").unwrap().as_str();
+                let sliced_datetime = &datetime_str[..19];
+        
+                if let Ok(parsed_datetime) = PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
+                    if let Some(smallest) = smallest_time {
+                        if parsed_datetime < smallest {
+                            smallest_time = Some(parsed_datetime);
+                            println!("smallest time:{} ",smallest_time.unwrap())
                         }
-                        None=>{eprintln!("Something went wrong")}
-                        
+                    } else {
+                        smallest_time = Some(parsed_datetime);
                     }
                 }
             }
-            // if let Some(next_line)=lines.next(){
-            //     if let Ok(sequence) =next_line  {
-            //         let seq_len:i32=sequence.len().try_into().unwrap();
-            //         let barcode_name=barcode_extraction(header);
-            //         barcode_map.entry(barcode_name).and_modify(|vec| vec.push(seq_len)).or_insert(vec![seq_len]);
-            //     }
-            // }
-            
         }
 
     }
