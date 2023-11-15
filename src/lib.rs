@@ -24,8 +24,17 @@ pub struct Config{
     pub time_hr:u64,
     pub file_name:File,
 }
-
-
+pub struct TimeFrame{
+    small:Box<dyn FastqFileRead>,
+    large:Box<dyn FastqFileRead>,
+}
+impl TimeFrame {
+    fn get_small(self)-> Box<dyn FastqFileRead>{
+        let small=self.small;
+        small.start_time()
+    }
+    
+}
 //creating a struct and its match expression for barcode and time extraction using regular expression
 /*
 struct ExtractionProcess{
@@ -175,25 +184,40 @@ impl FastqFileRead for Config {
         let mut target_time:Option<PrimitiveDateTime>=None;
         let end_time:Option<PrimitiveDateTime>=None;
         let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
-        
+        let younger_child=self.start_time();
+        let elder_child=self.get_line();
+        // println!("coming single thing at a time:{}",elder_child);
         while let Some(line) = lines.next() {
             let header = line.unwrap();
-        
+
             if let Some(captures) = date_time_re.captures(&header) {
                 let datetime_str = captures.name("time").unwrap().as_str();
                 let sliced_datetime = &datetime_str[..19];
         
                 if let Ok(parsed_datetime) = PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
-                    if let Some(smallest) = smallest_time {
-                        if parsed_datetime < smallest {
-                            smallest_time = Some(parsed_datetime);
-                            println!("smallest time:{} ",smallest_time.unwrap())
-                        }
-                    } else {
-                        smallest_time = Some(parsed_datetime);
-                    }
+                    println!("Parsed time from the family :{}",parsed_datetime);
+                    // if parsed_datetime>younger_child {
+                    //     println!("Middle child:{}",parsed_datetime);
+                    // }
+                    // if let Some(smallest) = smallest_time {
+                    //     if parsed_datetime < smallest {
+                    //         smallest_time = Some(parsed_datetime);
+                    //         println!("smallest time:{} ",smallest);
+                    //         println!("Parsed time:{}",parsed_datetime);
+                    //         // println!("Targeted time:{:?}",target_time);
+                    //         if smallest_time< target_time && Some(parsed_datetime)>target_time {
+                    //             target_time=Some(parsed_datetime);
+                    //             println!("This time-frame is not coming as expected!");
+                    //             println!("Target time is expected as : {}",target_time.unwrap());
+                                
+                    //         }
+                    //     }
+                    // } else {
+                    //     smallest_time = Some(parsed_datetime);
+                    // }
                 }
             }
+           
         }
 
     }
