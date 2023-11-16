@@ -24,17 +24,19 @@ pub struct Config{
     pub time_hr:u64,
     pub file_name:File,
 }
-pub struct TimeFrame{
-    small:Box<dyn FastqFileRead>,
-    large:Box<dyn FastqFileRead>,
-}
-impl TimeFrame {
-    fn get_small(self)-> Box<dyn FastqFileRead>{
-        let small=self.small;
-        small.start_time()
-    }
+
+// //passing trait inside a field of another struct
+// pub struct TimeFrame{
+//     small:Box<dyn FastqFileRead>,
+//     large:Box<dyn FastqFileRead>,
+// }
+// impl TimeFrame {
+//     fn get_small(self)-> Box<dyn FastqFileRead>{
+//         let small=self.small;
+//         small.start_time()
+//     }
     
-}
+// }
 //creating a struct and its match expression for barcode and time extraction using regular expression
 /*
 struct ExtractionProcess{
