@@ -13,6 +13,7 @@ use time::{PrimitiveDateTime, date,time};
 pub trait FastqFileRead {
     fn end_time(&self,start:PrimitiveDateTime)->PrimitiveDateTime;
     fn count_line(self, collect_map:&mut HashMap<String,Vec<i32>>)->&mut HashMap<String, Vec<i32>>;
+    fn reframe(&self)-> PrimitiveDateTime;
     fn start_time( &self)->PrimitiveDateTime;
     fn get_line( &self)->PrimitiveDateTime;
     fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>);
@@ -119,8 +120,8 @@ impl FastqFileRead for Config {
         collect_map
         
     }
-
-    fn start_time( &self)->PrimitiveDateTime {
+    //reframing structure
+    fn reframe(&self)-> PrimitiveDateTime{
         let reader=BufReader::new(&self.file_name);
         let mut lines=reader.lines();
         let mut smallest_datetime:Option<PrimitiveDateTime>=None;
@@ -131,21 +132,71 @@ impl FastqFileRead for Config {
             if let Some(captures) = date_time_re.captures(&line_str) {
                 let datetime_str = captures.name("time").unwrap().as_str();
                 let sliced_datetime=&datetime_str[..19];
-                if let  Ok(parsed_datetime)= PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
-                    match smallest_datetime {
-                        Some(smallest)=>{
-                            if parsed_datetime <smallest  {
-                                smallest_datetime=Some(parsed_datetime);
-                                return  smallest_datetime.unwrap();
-                            }
-                        }
-                        None=>{
-                            smallest_datetime=Some(parsed_datetime);
-                        }
+                println!("Sliced time{}",sliced_datetime);
+                let parsed_time=PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S");
+                // return parsed_time;
+                match parsed_time {
+                    Ok(parsed_time)=>{
+                        // println!("Each parsed date time :{}",parsed_time);
+                        return parsed_time;
+                    },
+                    Err(_)=>{println!("Error parsing date time frame");}
+                    
+                }
+                // if let  Ok(parsed_datetime)= PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
+                //     return parsed_datetime;
+                // }
+            }
+            
+        }
+        // loop{
+        //     if let Some(line) =lines.next()  {
+        //         let line_str=line.unwrap();
+        //         if let Some(captures) =date_time_re.captures(&line_str)  {
+        //             let datetime_str = captures.name("time").unwrap().as_str();
+        //                     let sliced_datetime=&datetime_str[..19];
+        //                     println!("Sliced date time:{}",sliced_datetime);
+        //                     // if let  Ok(parsed_datetime)= PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
+        //                     //     return parsed_datetime;
+            
+        //                     // }  
+                    
+        //         }
+                
+        //     }
+        // }
+        PrimitiveDateTime::new(date!(1930-01-01), time!(0:00)) //this is dummy value ; replace this with some error handling stuff
+    }
+
+    fn start_time( &self)->PrimitiveDateTime {
+        // let reader=BufReader::new(&self.file_name);
+        // let mut lines=reader.lines();
+        let mut smallest_datetime:Option<PrimitiveDateTime>=None;
+        let mut small=String::new();
+        // let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
+        // // let mut end_time:PrimitiveDateTime = Default::default();
+        // while let Some(line)=lines.next() {
+        //     let line_str=line.unwrap();
+        //     if let Some(captures) = date_time_re.captures(&line_str) {
+        //         let datetime_str = captures.name("time").unwrap().as_str();
+        //         let sliced_datetime=&datetime_str[..19];
+        //         if let  Ok(parsed_datetime)= PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
+            let  parsed_time=&self.reframe();
+            println!("parsed time:{}",parsed_time);
+            match smallest_datetime {
+                Some(smallest)=>{
+                    if parsed_time <&smallest  {
+                        smallest_datetime=Some(*parsed_time);
+                        return  smallest_datetime.unwrap();
                     }
                 }
+                None=>{
+                    smallest_datetime=Some(*parsed_time);
+                }
             }
-        }
+        //         }
+        //     }
+        // }
         PrimitiveDateTime::new(date!(1930-01-01), time!(0:00)) //this is dummy value ; replace this with some error handling stuff
     }
     fn get_line( &self)->PrimitiveDateTime {
@@ -186,7 +237,7 @@ impl FastqFileRead for Config {
         let mut target_time:Option<PrimitiveDateTime>=None;
         let end_time:Option<PrimitiveDateTime>=None;
         let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
-        let younger_child=self.start_time();
+        // let younger_child=self.start_time();
         let elder_child=self.get_line();
         // println!("coming single thing at a time:{}",elder_child);
         while let Some(line) = lines.next() {
@@ -198,25 +249,7 @@ impl FastqFileRead for Config {
         
                 if let Ok(parsed_datetime) = PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
                     println!("Parsed time from the family :{}",parsed_datetime);
-                    // if parsed_datetime>younger_child {
-                    //     println!("Middle child:{}",parsed_datetime);
-                    // }
-                    // if let Some(smallest) = smallest_time {
-                    //     if parsed_datetime < smallest {
-                    //         smallest_time = Some(parsed_datetime);
-                    //         println!("smallest time:{} ",smallest);
-                    //         println!("Parsed time:{}",parsed_datetime);
-                    //         // println!("Targeted time:{:?}",target_time);
-                    //         if smallest_time< target_time && Some(parsed_datetime)>target_time {
-                    //             target_time=Some(parsed_datetime);
-                    //             println!("This time-frame is not coming as expected!");
-                    //             println!("Target time is expected as : {}",target_time.unwrap());
-                                
-                    //         }
-                    //     }
-                    // } else {
-                    //     smallest_time = Some(parsed_datetime);
-                    // }
+                    
                 }
             }
            
