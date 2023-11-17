@@ -146,3 +146,10 @@ Here you can see I have been using two implementation blocks for a single Config
       }  
     }    
     ```
+
+
+# Iteration is not happening from if let block 
+# Replacing if let block with match enum
+
+# When to use ***while let*** statement and when to use ***if let*** statement or ***loop match***
+# Return statement break out the loop
