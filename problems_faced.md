@@ -153,3 +153,4 @@ Here you can see I have been using two implementation blocks for a single Config
 
 # When to use ***while let*** statement and when to use ***if let*** statement or ***loop match***
 # Return statement break out the loop
+# Creating  struct to avoid repeatation
