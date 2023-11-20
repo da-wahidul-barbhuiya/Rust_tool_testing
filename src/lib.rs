@@ -16,7 +16,7 @@ pub trait FastqFileRead {
     fn reframe(&self)-> PrimitiveDateTime;
     fn start_time( &self)->PrimitiveDateTime;
     fn get_line( &self)->PrimitiveDateTime;
-    fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>);
+    fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>)->&mut HashMap<String,Vec<i32>>;
 }
 
 
@@ -230,12 +230,9 @@ impl FastqFileRead for Config {
         }
         PrimitiveDateTime::new(date!(1930-01-01), time!(0:00)) //this is dummy value ; replace this with some error handling stuff
     }
-    fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>){
+    fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>)-> &mut HashMap<String,Vec<i32>>{
         let reader=BufReader::new(&self.file_name);
         let mut lines=reader.lines();
-        let mut smallest_time:Option<PrimitiveDateTime>=None;
-        let mut target_time:Option<PrimitiveDateTime>=None;
-        let end_time:Option<PrimitiveDateTime>=None;
         let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
         let mut smallest_datetime:Option<PrimitiveDateTime>=None;
         while let Some(line) = lines.next() {
@@ -255,9 +252,22 @@ impl FastqFileRead for Config {
                             if let Some(smallest) =  smallest_datetime{
                                 let new_added_time=self.end_time(smallest);
                                 if parsed_datetime<new_added_time{
-                                    println!("Parsed date time frame from match expression:{}",parsed_datetime);
+                                    // println!("Parsed date time frame from match expression:{}",parsed_datetime);
                                     let barcode_no=barcode_extraction(header);
-                                    println!("Barcode name:{}",barcode_no);
+                                    // println!("Barcode name:{}",barcode_no);
+                                    
+                                    if let Some(sequence_line) = lines.next() {
+                                        // println!("Sequence line is:{:?}",sequence_line);
+                                        if let Ok(seq_len)=sequence_line{
+                                            let line_length:i32=seq_len.len().try_into().unwrap();
+                                            // println!("Sequence line length is :{}",line_length);
+                                            // barcode_reads_length.insert(barcode_no, line_length);
+                                            barcode_map.entry(barcode_no).and_modify(|vec|vec.push(line_length)).or_insert(vec![line_length]);
+                                            
+
+                                        }
+                                        
+                                    }
                                     
                                 }
                             }
@@ -270,6 +280,9 @@ impl FastqFileRead for Config {
             }
            
         }
+        // println!("barcode with read length:{:?}",barcode_map);
+        barcode_map
+
 
     }
     
