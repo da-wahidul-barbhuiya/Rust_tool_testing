@@ -237,9 +237,7 @@ impl FastqFileRead for Config {
         let mut target_time:Option<PrimitiveDateTime>=None;
         let end_time:Option<PrimitiveDateTime>=None;
         let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
-        // let younger_child=self.start_time();
-        let elder_child=self.get_line();
-        // println!("coming single thing at a time:{}",elder_child);
+        let mut smallest_datetime:Option<PrimitiveDateTime>=None;
         while let Some(line) = lines.next() {
             let header = line.unwrap();
 
@@ -247,9 +245,27 @@ impl FastqFileRead for Config {
                 let datetime_str = captures.name("time").unwrap().as_str();
                 let sliced_datetime = &datetime_str[..19];
         
-                if let Ok(parsed_datetime) = PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
-                    println!("Parsed time from the family :{}",parsed_datetime);
-                    
+                if let  Ok(parsed_datetime)= PrimitiveDateTime::parse(sliced_datetime, "%Y-%m-%dT%H:%M:%S") {
+                    match smallest_datetime {
+                        Some(smallest)=>{
+                            if parsed_datetime <smallest  {
+                                smallest_datetime=Some(parsed_datetime);
+                                
+                            }
+                            if let Some(smallest) =  smallest_datetime{
+                                let new_added_time=self.end_time(smallest);
+                                if parsed_datetime<new_added_time{
+                                    println!("Parsed date time frame from match expression:{}",parsed_datetime);
+                                    let barcode_no=barcode_extraction(header);
+                                    println!("Barcode name:{}",barcode_no);
+                                    
+                                }
+                            }
+                        }
+                        None=>{
+                            smallest_datetime=Some(parsed_datetime);
+                        }
+                    }
                 }
             }
            

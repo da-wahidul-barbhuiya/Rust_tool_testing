@@ -192,9 +192,9 @@ fn main() {
     // println!("Added time:{:?}",Line_count)
     // let start_time=NextLineTest::FastqFileRead::start_time(&config,);
     // println!("Start time is {}",start_time);
-    let parsed_time=NextLineTest::FastqFileRead::reframe(&config);
-    println!("Parsed time main:{}",parsed_time);
-    // let time_btn=NextLineTest::FastqFileRead::in_btn_time(&config, &mut Collect_barcode);
+    // let parsed_time=NextLineTest::FastqFileRead::reframe(&config);
+    // println!("Parsed time main:{}",parsed_time);
+    let time_btn=NextLineTest::FastqFileRead::in_btn_time(&config, &mut Collect_barcode);
     // println!("Apna time ayega{:?}",time_btn);
     
 
