@@ -16,7 +16,7 @@ pub trait FastqFileRead {
     fn reframe(&self)-> PrimitiveDateTime;
     fn start_time( &self)->PrimitiveDateTime;
     fn get_line( &self)->PrimitiveDateTime;
-    fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>)->&mut HashMap<String,Vec<i32>>;
+    fn in_btn_time<'a>(&self,barcode_map:&mut HashMap<String,Vec<i32>>)->&mut HashMap<String,Vec<i32>>;
 }
 
 
@@ -230,7 +230,7 @@ impl FastqFileRead for Config {
         }
         PrimitiveDateTime::new(date!(1930-01-01), time!(0:00)) //this is dummy value ; replace this with some error handling stuff
     }
-    fn in_btn_time(&self,barcode_map:&mut HashMap<String,Vec<i32>>)-> &mut HashMap<String,Vec<i32>>{
+    fn in_btn_time<'a>(&self,barcode_map:&mut HashMap<String,Vec<i32>>)-> &'a mut HashMap<String,Vec<i32>>{
         let reader=BufReader::new(&self.file_name);
         let mut lines=reader.lines();
         let date_time_re: Regex = Regex::new(r"start_time=(?P<time>\S+)\s*").unwrap();
