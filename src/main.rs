@@ -195,7 +195,7 @@ fn main() {
     // let parsed_time=NextLineTest::FastqFileRead::reframe(&config);
     // println!("Parsed time main:{}",parsed_time);
     let time_btn=NextLineTest::FastqFileRead::in_btn_time(&config, &mut Collect_barcode);
-    // println!("Apna time ayega{:?}",time_btn);
+    println!("Apna time ayega{:?}",time_btn);
     
 
 }
