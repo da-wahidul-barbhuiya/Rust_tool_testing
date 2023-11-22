@@ -154,3 +154,7 @@ Here you can see I have been using two implementation blocks for a single Config
 # When to use ***while let*** statement and when to use ***if let*** statement or ***loop match***
 # Return statement break out the loop
 # Creating  struct to avoid repeatation
+# Showing error on returning a HashMap reference which one is using as a parameter in the method/function in_btn_time()
+* This error is coming becuase I did not use any lifetime parameter since it is taking two different entity when you passsing same HashMap reference as a return value
+* Then I tried to add one lifetime parameter for same HashMap reference and return HashMap but since I neglect to add  another lifetime parameter for self parameter in the fucntion/method so still getting same error 
+* Ultimately error resloved by passing two different lifetime parameter for the method  in_btn_time()
