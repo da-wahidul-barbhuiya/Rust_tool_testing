@@ -170,8 +170,10 @@
 
 use std::collections::HashMap;
 use std::env;
+use std::fs::File;
 use std::process;
 use NextLineTest::Config;
+/* 
 fn main() {
     let args:Vec<String>=env::args().collect();
 
@@ -194,8 +196,38 @@ fn main() {
     // println!("Start time is {}",start_time);
     // let parsed_time=NextLineTest::FastqFileRead::reframe(&config);
     // println!("Parsed time main:{}",parsed_time);
-    let time_btn=NextLineTest::FastqFileRead::in_btn_time(&config, &mut Collect_barcode);
-    println!("Apna time ayega{:?}",time_btn);
+
+
+
+    // let time_btn=NextLineTest::FastqFileRead::in_btn_time(&config, &mut Collect_barcode);
+    // println!("Apna time ayega{:?}",time_btn);
+
+
+    // mod cli;
+    // use cli::arg_passing;
+
+    /*
+    input command : cargo run from_time to_time file_name
+                    cargo run 1 4 diff_barcode.fastq
+    Output should look like this
+    MRL summary
+    Time barcode05 barcode04
+    1hr   0         680
+    2hr   896       693.5
+    3hr   667       606
+    4hr   667       606
+    
+    */
     
 
+}*/
+mod cli;
+use cli::Arguments;
+use clap::Parser;
+fn main(){
+
+    let args=Arguments::parse();
+    let file=File::open(&args.file_path);
+
+    println!("{:?}",args)
 }
