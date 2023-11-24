@@ -226,7 +226,7 @@ use cli::Arguments;
 use clap::Parser;
 fn main(){
 
-    let args=Arguments::parse();
+    let args: cli::Arguments<P>=Arguments::parse();
     let file=File::open(&args.file_path);
 
     println!("{:?}",args)
