@@ -12,8 +12,8 @@ use NextLineTest::barcode_extraction;
 use std::path::Path;
 
 pub trait Summary {
-    fn last_time(self,start:PrimitiveDateTime)->PrimitiveDateTime;
-    fn read_file(self);
+    fn last_time(&self,start:PrimitiveDateTime)->PrimitiveDateTime;
+    fn read_file(file:P);
     // fn barcode_time<'a,'b>(&'b self,barcode_map:&'a mut HashMap<String,Vec<i32>>)-> &'a mut HashMap<String,Vec<i32>>;
 } 
 
@@ -29,15 +29,15 @@ where
 
 
 
-impl Summary for Arguments<P>
+impl <P>  Summary for Arguments<P>
 where 
     P:AsRef<Path>,
 {
-    fn last_time(self,start:PrimitiveDateTime)->PrimitiveDateTime {
+    fn last_time(&self,start:PrimitiveDateTime)->PrimitiveDateTime {
         start+Duration::new(self.from*3600, 0)
     }
-    fn read_file(self) {
-        let reader=parse_fastx_file(self.file_path).expect("Invalid file type");
+    fn read_file(file:P) {
+        let reader=parse_fastx_file(file.as_ref()).expect("Invalid file type");
         // let mut lines=reader.lines();
         
     }
