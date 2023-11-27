@@ -9,21 +9,30 @@ use needletail::{parse_fastx_file, Sequence, FastxReader};
 use std::error::Error;
 use regex::Regex;
 use NextLineTest::barcode_extraction;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+fn check_path_exists(s: &str) -> Result<PathBuf, String> {
+    // Implement your logic to check path existence here
+    // ...
+
+    // For the sake of the example, we assume s is a valid path
+    Ok(PathBuf::from(s))
+}
 
 pub trait Summary {
     fn last_time(&self,start:PrimitiveDateTime)->PrimitiveDateTime;
-    fn read_file(file:P);
+    fn read_file(&self) -> Box<dyn FastxReader>;
     // fn barcode_time<'a,'b>(&'b self,barcode_map:&'a mut HashMap<String,Vec<i32>>)-> &'a mut HashMap<String,Vec<i32>>;
 } 
 
 #[derive(Parser,Debug)]
 pub struct Arguments<P>
 where
-    P:AsRef<Path>,
+    P:AsRef<PathBuf>+std::clone::Clone+std::marker::Send+std::marker::Sync,
 {
     pub from:u64,
     pub to:u64,
+    #[clap(value_parser = check_path_exists, value_name = "FILE")]
     pub file_path:P,
 }
 
@@ -31,14 +40,15 @@ where
 
 impl <P>  Summary for Arguments<P>
 where 
-    P:AsRef<Path>,
+    P:AsRef<PathBuf>+std::clone::Clone+std::marker::Sync+std::marker::Send+ std::convert::AsRef<std::path::Path>,
 {
     fn last_time(&self,start:PrimitiveDateTime)->PrimitiveDateTime {
         start+Duration::new(self.from*3600, 0)
     }
-    fn read_file(file:P) {
-        let reader=parse_fastx_file(file.as_ref()).expect("Invalid file type");
+    fn read_file(&self) -> Box<dyn FastxReader>{
+        let reader=parse_fastx_file(self.file_path).expect("Invalid file type");
         // let mut lines=reader.lines();
+        reader
         
     }
 

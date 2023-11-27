@@ -171,6 +171,7 @@
 use std::collections::HashMap;
 use std::env;
 use std::fs::File;
+use std::path::PathBuf;
 use std::process;
 use NextLineTest::Config;
 /* 
@@ -223,11 +224,19 @@ fn main() {
 }*/
 mod cli;
 use cli::Arguments;
-use clap::Parser;
-fn main(){
+use clap::{Parser, Arg};
+fn main()-> Result<(), Box<dyn std::error::Error>>{
 
-    let args: cli::Arguments<P>=Arguments::parse();
-    let file=File::open(&args.file_path);
-
-    println!("{:?}",args)
+    let args: Arguments<_>=Arguments::parse();
+    let from=args.from;
+    let to=args.to;
+    
+    let file: Result<File, _> = File::open(&args.file_path);
+    // let file= match args.file_path {
+    //     Ok(P) =>{println!("Do something:{}",P)},
+    //     _=>println!("Error reading file")
+    // };
+    
+    println!("{:?}",args);
+    Ok(())
 }
