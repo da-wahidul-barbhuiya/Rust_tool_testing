@@ -227,11 +227,11 @@ use cli::Arguments;
 use clap::{Parser, Arg};
 fn main()-> Result<(), Box<dyn std::error::Error>>{
 
-    let args: Arguments<_>=Arguments::parse();
+    let args: Arguments<dyn P::AsRef<PathBuf>+Clone+Send+Sync>=Arguments::parse();
     let from=args.from;
     let to=args.to;
-    
-    let file: Result<File, _> = File::open(&args.file_path);
+    let file=File::open::<&_>(&args.file_path).expect("File not found");
+    // let file: Result<File, _> = File::open::(<&args.file_path>);
     // let file= match args.file_path {
     //     Ok(P) =>{println!("Do something:{}",P)},
     //     _=>println!("Error reading file")
