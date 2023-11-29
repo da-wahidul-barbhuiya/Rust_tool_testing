@@ -158,3 +158,6 @@ Here you can see I have been using two implementation blocks for a single Config
 * This error is coming becuase I did not use any lifetime parameter since it is taking two different entity when you passsing same HashMap reference as a return value
 * Then I tried to add one lifetime parameter for same HashMap reference and return HashMap but since I neglect to add  another lifetime parameter for self parameter in the fucntion/method so still getting same error 
 * Ultimately error resloved by passing two different lifetime parameter for the method  in_btn_time()
+
+# Getting error when passing struct Arguments along with its trait bound in the main.rs file
+* Error suggests that undeclared type P in the life time reference from struct Arguments
