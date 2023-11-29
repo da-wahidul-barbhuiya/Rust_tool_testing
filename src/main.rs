@@ -225,9 +225,20 @@ fn main() {
 mod cli;
 use cli::Arguments;
 use clap::{Parser, Arg};
+
+
+
+fn pass_P<P>()-> Arguments<P>
+where P:AsRef<PathBuf>+std::clone::Clone+std::marker::Sync+std::marker::Copy+std::marker::Send+ std::convert::AsRef<std::path::Path>,
+{
+    let new: Arguments<P>=Arguments::parse();
+    new
+}
 fn main()-> Result<(), Box<dyn std::error::Error>>{
 
-    let args: Arguments<dyn P::AsRef<PathBuf>+Clone+Send+Sync>=Arguments::parse();
+    // let args: Arguments<dyn P::AsRef<PathBuf>+Clone+Send+Sync>::Arguments=Arguments::parse();
+    let args: Arguments<P>=Arguments::parse();
+    // let args=pass_P::<P>();
     let from=args.from;
     let to=args.to;
     let file=File::open::<&_>(&args.file_path).expect("File not found");
