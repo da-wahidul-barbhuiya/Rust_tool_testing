@@ -226,28 +226,32 @@ mod cli;
 use cli::Arguments;
 use clap::{Parser, Arg};
 
-
-
-fn pass_P<P>()-> Arguments<P>
+fn pass_P<P>()-> P
 where P:AsRef<PathBuf>+std::clone::Clone+std::marker::Sync+std::marker::Copy+std::marker::Send+ std::convert::AsRef<std::path::Path>,
 {
     let new: Arguments<P>=Arguments::parse();
-    new
+    new.file_path
 }
 fn main()-> Result<(), Box<dyn std::error::Error>>{
 
     // let args: Arguments<dyn P::AsRef<PathBuf>+Clone+Send+Sync>::Arguments=Arguments::parse();
-    let args: Arguments<P>=Arguments::parse();
-    // let args=pass_P::<P>();
-    let from=args.from;
-    let to=args.to;
-    let file=File::open::<&_>(&args.file_path).expect("File not found");
+    // let args: Arguments<P>=Arguments::parse();
+    
+    // let file_type:&(dyn AsRef<PathBuf>+Sync+Send+Clone+Copy+AsRef<Path>)=pass_P();
+    type P=dyn AsRef<PathBuf>+std::marker::Send+std::marker::Sync+std::marker::Copy;
+    type r = dyn AsRef<PathBuf> + Send + Sync + Copy;
+    let args:Arguments<P>=Arguments::parse();
+    
+    // let args:Arguments< dyn AsRef<PathBuf>+Clone+Send+Sync>=Arguments::parse();
+    // let from=args.from;
+    // let to=args.to;
+    // let file=File::open::<&_>(&args.file_path).expect("File not found");
     // let file: Result<File, _> = File::open::(<&args.file_path>);
     // let file= match args.file_path {
     //     Ok(P) =>{println!("Do something:{}",P)},
     //     _=>println!("Error reading file")
     // };
     
-    println!("{:?}",args);
+    // println!("{:?}",args);
     Ok(())
 }

@@ -26,9 +26,9 @@ pub trait Summary {
 } 
 
 #[derive(Parser,Debug)]
-pub struct Arguments<P>
-where
-    P:AsRef<PathBuf>+std::clone::Clone+std::marker::Send+std::marker::Sync,
+pub struct Arguments<P:AsRef<PathBuf>+std::clone::Clone+std::marker::Send+std::marker::Sync>
+// where
+//     P:AsRef<PathBuf>+std::clone::Clone+std::marker::Send+std::marker::Sync,
 {
     pub from:u64,
     pub to:u64,
