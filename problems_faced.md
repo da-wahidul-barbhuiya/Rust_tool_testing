@@ -161,3 +161,5 @@ Here you can see I have been using two implementation blocks for a single Config
 
 # Getting error when passing struct Arguments along with its trait bound in the main.rs file
 * Error suggests that undeclared type P in the life time reference from struct Arguments
+
+* Clone,Copy trait and their implementation not as dynamic
