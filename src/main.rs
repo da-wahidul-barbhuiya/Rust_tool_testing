@@ -168,7 +168,7 @@
 // // }
 
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Arguments};
 use std::env;
 use std::fs::File;
 use std::path::PathBuf;
@@ -223,9 +223,9 @@ fn main() {
 
 }*/
 mod cli;
-use cli::Arguments;
+use cli::MyArguments;
 use clap::{Parser, Arg};
-
+/* 
 fn pass_P<P>()-> P
 where P:AsRef<PathBuf>+std::clone::Clone+std::marker::Sync+std::marker::Copy+std::marker::Send+ std::convert::AsRef<std::path::Path>,
 {
@@ -235,13 +235,17 @@ where P:AsRef<PathBuf>+std::clone::Clone+std::marker::Sync+std::marker::Copy+std
 fn main()-> Result<(), Box<dyn std::error::Error>>{
 
     // let args: Arguments<dyn P::AsRef<PathBuf>+Clone+Send+Sync>::Arguments=Arguments::parse();
-    // let args: Arguments<P>=Arguments::parse();
+    let args: Arguments<P>=Arguments::parse();
     
     // let file_type:&(dyn AsRef<PathBuf>+Sync+Send+Clone+Copy+AsRef<Path>)=pass_P();
-    type P=dyn AsRef<PathBuf>+std::marker::Send+std::marker::Sync+std::marker::Copy;
-    type r = dyn AsRef<PathBuf> + Send + Sync + Copy;
-    let args:Arguments<P>=Arguments::parse();
-    
+    // type P=dyn AsRef<PathBuf>+std::marker::Send+std::marker::Sync+std::marker::Copy;
+    // let instances=cli::Arguments{from:3,to:4,file_path:PathBuf::new()};
+    type r = dyn AsRef<PathBuf> + Send + Sync ;
+    type q= dyn Clone;
+    type s= dyn Copy;
+
+    // let args:Arguments<dyn r>=Arguments::parse();
+  
     // let args:Arguments< dyn AsRef<PathBuf>+Clone+Send+Sync>=Arguments::parse();
     // let from=args.from;
     // let to=args.to;
@@ -253,5 +257,11 @@ fn main()-> Result<(), Box<dyn std::error::Error>>{
     // };
     
     // println!("{:?}",args);
+    Ok(())
+}*/
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args: MyArguments<P:(dyn AsRef<PathBuf>+Sync+Send+Clone+Copy)> = MyArguments::parse();
+    // Use args in the rest of your main logic
     Ok(())
 }

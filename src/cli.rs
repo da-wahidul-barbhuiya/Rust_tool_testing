@@ -25,8 +25,8 @@ pub trait Summary {
     // fn barcode_time<'a,'b>(&'b self,barcode_map:&'a mut HashMap<String,Vec<i32>>)-> &'a mut HashMap<String,Vec<i32>>;
 } 
 
-#[derive(Parser,Debug)]
-pub struct Arguments<P:AsRef<PathBuf>+std::clone::Clone+std::marker::Send+std::marker::Sync>
+#[derive(Parser,Debug,Clone)]
+pub struct MyArguments<P:AsRef<PathBuf>+std::clone::Clone+std::marker::Send+std::marker::Sync>
 // where
 //     P:AsRef<PathBuf>+std::clone::Clone+std::marker::Send+std::marker::Sync,
 {
@@ -38,7 +38,7 @@ pub struct Arguments<P:AsRef<PathBuf>+std::clone::Clone+std::marker::Send+std::m
 
 
 
-impl <P>  Summary for Arguments<P>
+impl <P>  Summary for MyArguments<P>
 where 
     P:AsRef<PathBuf>+std::clone::Clone+std::marker::Sync+std::marker::Send+ std::convert::AsRef<std::path::Path>,
 {
