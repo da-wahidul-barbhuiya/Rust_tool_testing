@@ -168,12 +168,12 @@
 // // }
 
 
-use std::{collections::HashMap, fmt::Arguments};
-use std::env;
-use std::fs::File;
-use std::path::PathBuf;
-use std::process;
-use NextLineTest::Config;
+// use std::{collections::HashMap, fmt::Arguments};
+// use std::env;
+// use std::fs::File;
+// use std::path::PathBuf;
+// use std::process;
+// use NextLineTest::Config;
 /* 
 fn main() {
     let args:Vec<String>=env::args().collect();
@@ -222,30 +222,31 @@ fn main() {
     
 
 }*/
+/*
 mod cli;
 use cli::MyArguments;
 use clap::{Parser, Arg};
-/* 
+
 fn pass_P<P>()-> P
 where P:AsRef<PathBuf>+std::clone::Clone+std::marker::Sync+std::marker::Copy+std::marker::Send+ std::convert::AsRef<std::path::Path>,
 {
-    let new: Arguments<P>=Arguments::parse();
+    let new: MyArguments<P>=MyArguments::parse();
     new.file_path
 }
 fn main()-> Result<(), Box<dyn std::error::Error>>{
 
     // let args: Arguments<dyn P::AsRef<PathBuf>+Clone+Send+Sync>::Arguments=Arguments::parse();
-    let args: Arguments<P>=Arguments::parse();
     
+    // let args: MyArguments<PathBuf>=MyArguments::parse();
     // let file_type:&(dyn AsRef<PathBuf>+Sync+Send+Clone+Copy+AsRef<Path>)=pass_P();
     // type P=dyn AsRef<PathBuf>+std::marker::Send+std::marker::Sync+std::marker::Copy;
     // let instances=cli::Arguments{from:3,to:4,file_path:PathBuf::new()};
     type r = dyn AsRef<PathBuf> + Send + Sync ;
     type q= dyn Clone;
     type s= dyn Copy;
+    type P=dyn AsRef<PathBuf>;
+    let args:MyArguments<P>=MyArguments::parse();
 
-    // let args:Arguments<dyn r>=Arguments::parse();
-  
     // let args:Arguments< dyn AsRef<PathBuf>+Clone+Send+Sync>=Arguments::parse();
     // let from=args.from;
     // let to=args.to;
@@ -258,10 +259,108 @@ fn main()-> Result<(), Box<dyn std::error::Error>>{
     
     // println!("{:?}",args);
     Ok(())
-}*/
+}
+ */
+// fn main() -> Result<(), Box<dyn std::error::Error>> {
+//     let P=
+//     let args: MyArguments<P> = MyArguments::parse();
+//     // Use args in the rest of your main logic
+//     Ok(())
+// }
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let args: MyArguments<P:(dyn AsRef<PathBuf>+Sync+Send+Clone+Copy)> = MyArguments::parse();
-    // Use args in the rest of your main logic
-    Ok(())
+// use clap::{App, Arg};
+
+// fn main() {
+//     // Define command line arguments using clap
+//     let matches = App::new("My Command Line Project")
+//         .version("1.0")
+//         .author("Your Name")
+//         .about("A simple command line project with clap")
+//         .arg(
+//             Arg::new("number1")
+//                 .about("First number argument")
+//                 .required(true)
+//                 .index(1),
+//         )
+//         .arg(
+//             Arg::new("number2")
+//                 .about("Second number argument")
+//                 .required(true)
+//                 .index(2),
+//         )
+//         .arg(
+//             Arg::new("file_type")
+//                 .about("File type argument")
+//                 .required(true)
+//                 .index(3),
+//         )
+//         .get_matches();
+
+//     // Extract values from command line arguments
+//     let number1 = matches.value_of("number1").unwrap();
+//     let number2 = matches.value_of("number2").unwrap();
+//     let file_type = matches.value_of("file_type").unwrap();
+
+//     // Print the provided values
+//     println!("Number 1: {}", number1);
+//     println!("Number 2: {}", number2);
+//     println!("File Type: {}", file_type);
+// }
+
+// mod cli;
+// use cli::MyArguments;
+// use clap::{self, Arg};
+// use time::PrimitiveDateTime;
+// use needletail::FastxReader;
+// use std::path::{PathBuf, Path};
+
+// fn main() {
+//     // Parse command line arguments
+//     let args: Arg<std::path::Path> = MyArguments::parse() ; //how this look so wierd that it does not have any value that comes in straight-forwad
+    
+//     // Some example usage of the parsed arguments
+//     println!("From: {}", args.from);
+//     println!("To: {}", args.to);
+//     println!("File Path: {:?}", args.file_path);
+
+//     // Example usage of the Summary trait methods
+//     let start_time = PrimitiveDateTime::now();
+//     let end_time = args.last_time(start_time);
+//     println!("Start Time: {}", start_time);
+//     println!("End Time: {}", end_time);
+
+//     // Example usage of reading the file
+//     let reader = args.read_file();
+//     // Use the 'reader' object as needed for your application
+// }
+
+// Rest of the code remains the same
+
+// ...
+
+mod test_cli;
+use std::collections::HashMap;
+
+use clap::Parser;
+use test_cli::Argument;
+use test_cli::one_hr_time;
+use test_cli::barcode_reads;
+fn main(){
+    let my_arg=Argument::parse();
+    println!("file:{:?}",my_arg.file);
+    println!("Summary format:{:?}",my_arg.summary);
+    // let kk=one_hr_time(my_arg);
+    // println!("One hour interval result:{}",kk);
+    // let brcode=barcode_reads( my_arg);
+    // print!("Barcode count:{}",brcode);
+    let mut Collect_barcode:HashMap<String,Vec<i32>>=HashMap::new();
+    let p=my_arg.barcode_reads_count(&mut Collect_barcode);
+    println!("Getting map reads of barcode and reads:{:?}",p);
+    let mut mean_map:HashMap<String,f64>=HashMap::new();
+    for (barcode_name,values) in Collect_barcode.iter(){
+        let barcode_mean:f64=values.iter().map(|&x| x as f64).sum::<f64>()/values.len() as f64;
+        mean_map.insert(barcode_name.clone(), barcode_mean);
+    }
+    println!("1st hour having barcode name with reads number: {:#?}",mean_map)
+
 }
