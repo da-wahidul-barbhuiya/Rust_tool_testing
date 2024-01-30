@@ -357,10 +357,18 @@ fn main(){
     let p=my_arg.barcode_reads_count(&mut Collect_barcode);
     println!("Getting map reads of barcode and reads:{:?}",p);
     let mut mean_map:HashMap<String,f64>=HashMap::new();
+    // mean read calculation
+    // for (barcode_name,values) in Collect_barcode.iter(){
+    //     let barcode_mean:f64=values.iter().map(|&x| x as f64).sum::<f64>()/values.len() as f64;
+    //     mean_map.insert(barcode_name.clone(), barcode_mean);
+    // }
+    // println!("1st hour having barcode name with mean read length : {:#?}",mean_map);
+    // Reads number count
     for (barcode_name,values) in Collect_barcode.iter(){
-        let barcode_mean:f64=values.iter().map(|&x| x as f64).sum::<f64>()/values.len() as f64;
-        mean_map.insert(barcode_name.clone(), barcode_mean);
+        let value_count=values.iter().count();
+        let barcode_number=value_count as f64;
+        mean_map.insert(barcode_name.clone(), barcode_number);
     }
-    println!("1st hour having barcode name with reads number: {:#?}",mean_map)
+    println!("1st hour barcode name with total number of reads:{:?}",mean_map);
 
 }
