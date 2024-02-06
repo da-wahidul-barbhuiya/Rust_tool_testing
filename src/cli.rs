@@ -118,7 +118,7 @@ where
 
 
 //-----------------------------------------------------------\\
-/*                                                        
+/*                                                            |
 |    input command : cargo run from_time to_time file_name    |
 |                    cargo run 1 4 diff_barcode.fastq         |
 |    Output should look like this                             |

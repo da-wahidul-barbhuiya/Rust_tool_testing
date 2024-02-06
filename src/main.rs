@@ -369,6 +369,10 @@ fn main(){
         let barcode_number=value_count as f64;
         mean_map.insert(barcode_name.clone(), barcode_number);
     }
-    println!("1st hour barcode name with total number of reads:{:?}",mean_map);
-
+    // println!("1st hour barcode name with total number of reads:{:?}",mean_map);
+    let mut time_map:HashMap<String,HashMap<String,f64>>=HashMap::new();
+    
+    time_map.insert("1st hour".to_string(),mean_map.clone());
+    time_map.insert("2nd hour".to_string(),mean_map.clone());
+    println!("First hour stat:{:#?}",time_map);
 }

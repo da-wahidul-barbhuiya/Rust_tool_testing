@@ -59,6 +59,8 @@ pub fn checking_file_path(file_name:&str)-> Result<std::path::PathBuf,String>{
     }
 
 }
+// function for iteration over and over again
+
 // function to calculate one hour time interval
 pub fn one_hr_time(file_arg:Argument)-> PrimitiveDateTime{
     let time_to_pass=barcode_count(file_arg).unwrap();
@@ -87,51 +89,71 @@ pub fn barcode_reads(lin_str:String)->String{
     }
     String::new()
 }
-
-// this function will give a hashmap having different barcode name and it's read length 
-impl Argument {
-    pub fn barcode_reads_count<'a,'b>(&'b self,barcode_map:&'a mut HashMap<String,Vec<i32>>)-> &'a mut HashMap<String,Vec<i32>>
+pub fn earliest_dtime(tline_str:String,parsed_dtime:PrimitiveDateTime) ->PrimitiveDateTime{
+    let smallest_dtime:Option<PrimitiveDateTime>=None;
+    if let Some(cap_dtime) =datetime_re.captures(&tline_str)  
     {
-    let file_read=&self.file.clone().into_os_string().into_string().unwrap();
-    let mut reader=parse_fastx_file(file_read).expect("Invalid file/path");
-    let mut smallest_dtime_frame:Option<PrimitiveDateTime>=None;
-    while let Some(record) =reader.next()  {
-        let seqreq=record.expect("Invalid records!");
-        let header=seqreq.id().lines().next().unwrap().unwrap();
-        if let Some(time_captures) = datetime_re.captures(&header) {
-            let datetime_str=time_captures.name("time").unwrap().as_str();
-            let sliced_dtime=&datetime_str[..19];
-            if let Ok(parsed_dt) = PrimitiveDateTime::parse(sliced_dtime, "%Y-%m-%dT%H:%M:%S") {
-                match smallest_dtime_frame {
-                    Some(smallest)=>{
-                        if parsed_dt<smallest{
-                            smallest_dtime_frame=Some(parsed_dt)
-                        }
-                        if let Some(smallest) = smallest_dtime_frame {
-                            let one_hr_time=smallest+Duration::new(3600, 0);
-                            if parsed_dt<one_hr_time{
-                                let barcode_no=barcode_reads(header);
-                                let seq_line: i32=seqreq.seq().lines().next().unwrap().unwrap().len() as i32;
-                                barcode_map.entry(barcode_no).and_modify(|vec|vec.push(seq_line)).or_insert(vec![seq_line]);
-                            }
-                            
-                            
-                        }
-                    }
-                    None=>{
-                        smallest_dtime_frame=Some(parsed_dt)
-                    }
-                    
-                }
-                
-            }
-            
-        }
+        let dtime_str=cap_dtime.name("time").unwrap().as_str();
+        let sliced_dtime=&dtime_str[..19];
+        
+        return ;
         
     }
-    barcode_map
-}
+    smallest_dtime
     
+}
+// this function will give a hashmap having different barcode name and it's read length 
+impl Argument {
+    // One method/ function for just calculating smallest date-time-frame
+    
+    // using iteration for storing barcode_reads_count() for every hour
+    pub fn time_iteration(&self,small_dt_frame:PrimitiveDateTime)-> HashMap<String,HashMap<String,Vec<i32>>> 
+    {
+    }
+    pub fn barcode_reads_count<'a,'b>(&'b self,barcode_map:&'a mut HashMap<String,Vec<i32>>)-> &'a mut HashMap<String,Vec<i32>>
+    {
+        let file_read=&self.file.clone().into_os_string().into_string().unwrap();
+        let mut reader=parse_fastx_file(file_read).expect("Invalid file/path");
+        let mut smallest_dtime_frame:Option<PrimitiveDateTime>=None;
+        let mut smallest_dtime_collect: Vec<String>=Vec::new();
+        while let Some(record) =reader.next()  
+        {
+            let seqreq=record.expect("Invalid records!");
+            let header=seqreq.id().lines().next().unwrap().unwrap();
+            if let Some(time_captures) = datetime_re.captures(&header) {
+                let datetime_str=time_captures.name("time").unwrap().as_str();
+                let sliced_dtime=&datetime_str[..19];
+                if let Ok(parsed_dt) = PrimitiveDateTime::parse(sliced_dtime, "%Y-%m-%dT%H:%M:%S") {
+                    match smallest_dtime_frame 
+                    {
+                        Some(smallest)=>
+                        {
+                            if parsed_dt<smallest
+                            {
+                                smallest_dtime_frame=Some(parsed_dt)
+                            }
+                            if let Some( smallest) = smallest_dtime_frame 
+                            {
+                                let one_hr_time=smallest+Duration::new(3600, 0);
+                                if parsed_dt<one_hr_time
+                                {
+                                    let barcode_no=barcode_reads(header);
+                                    let seq_line: i32=seqreq.seq().lines().next().unwrap().unwrap().len() as i32;
+                                    barcode_map.entry(barcode_no).and_modify(|vec|vec.push(seq_line)).or_insert(vec![seq_line]);
+                                }
+                                smallest_dtime_collect.push(smallest.to_string());
+                            }
+                        }
+                        None=>{
+                            smallest_dtime_frame=Some(parsed_dt)
+                        }
+                    }
+                }
+            }
+        }
+        println!("From function adding smallest time to the vector:{:?}",smallest_dtime_collect);
+        barcode_map
+    }
 }
 
 // function/method for finding smallest time
